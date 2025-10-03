@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knife Hit</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-container">
+            <div id="score">Livello: 1</div>
+            <div id="knife-counter"></div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="start-screen" class="screen">
+            <h1>KNIFE HIT</h1>
+            <p>Colpisci il ceppo con tutti i coltelli.</p>
+            <p>Non colpire gli altri coltelli!</p>
+            <button id="start-button">Inizia Gioco</button>
+        </div>
+        <div id="gameover-screen" class="screen" style="display: none;">
+            <h1>GAME OVER</h1>
+            <p>Livello raggiunto: <span id="final-level">1</span></p>
+            <button id="restart-button">Riprova</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
