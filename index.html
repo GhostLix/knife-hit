@@ -1,28 +1,41 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Knife Hit</title>
+    <title>Knife Hit Replica</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
+        <!-- In-game UI -->
         <div id="ui-container">
-            <div id="score">Livello: 1</div>
+            <div id="score">Level: 1</div>
             <div id="knife-counter"></div>
         </div>
+        
+        <!-- The Game Canvas -->
         <canvas id="gameCanvas"></canvas>
+        
+        <!-- Start Screen -->
         <div id="start-screen" class="screen">
             <h1>KNIFE HIT</h1>
-            <p>Colpisci il ceppo con tutti i coltelli.</p>
-            <p>Non colpire gli altri coltelli!</p>
-            <button id="start-button">Inizia Gioco</button>
+            <p>Hit the log with all knives.</p>
+            <p>Don't hit any other knives!</p>
+            <button id="start-button">Start Game</button>
         </div>
+
+        <!-- Level Complete Screen (NEW) -->
+        <div id="level-complete-screen" class="screen" style="display: none;">
+            <h1>LEVEL COMPLETE!</h1>
+            <button id="next-level-button">Next Level</button>
+        </div>
+
+        <!-- Game Over Screen -->
         <div id="gameover-screen" class="screen" style="display: none;">
             <h1>GAME OVER</h1>
-            <p>Livello raggiunto: <span id="final-level">1</span></p>
-            <button id="restart-button">Riprova</button>
+            <p>Level reached: <span id="final-level">1</span></p>
+            <button id="restart-button">Retry Level</button>
         </div>
     </div>
     <script src="script.js"></script>
