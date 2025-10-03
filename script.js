@@ -40,12 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
         stuckKnives: [] 
     };
 
-    // --- KEY CHANGE: Adjusted dimensions to better fit the visual sprite ---
     const knife = {
-        // These values represent the 'hittable' part of the sprite, not the full image dimensions.
+        // HITBOX dimensions: These are used for collision detection. They remain unchanged.
         width: 25,  
         height: 85, 
-        // The (x,y) coordinate now represents the TIP of the blade for accurate collision.
+        
+        // --- KEY CHANGE: SPRITE dimensions for drawing, 20% larger ---
+        spriteWidth: 25 * 1.2,  // 30
+        spriteHeight: 85 * 1.2, // 102
+        
+        // The (x,y) coordinate represents the TIP of the blade for accurate collision.
         x: canvas.width / 2,
         y: canvas.height - 150,
         speed: 20 
@@ -67,17 +71,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 8;
         ctx.stroke();
 
-        // --- KEY CHANGE: Logic for drawing stuck knives correctly ---
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
-            // We need to rotate the knife by 180 degrees (PI radians) so it points inwards.
-            ctx.rotate(Math.PI); 
             
+            // --- KEY CHANGE: Drawing stuck knives correctly ---
+            // The context is rotated so that the Y-axis points OUT from the log's center.
+            // We draw the knife image along this axis, pointing outwards.
             if (imageLoaded) {
-                // Draw the knife so that its handle sticks out from the log's edge.
-                // 'target.radius - knife.height' places the handle right at the edge.
-                ctx.drawImage(knifeImage, -knife.width / 2, target.radius - knife.height, knife.width, knife.height);
+                // The knife's tip should be on the edge (-target.radius).
+                // We draw the image from its top-left corner, so we offset it by its full height.
+                ctx.drawImage(
+                    knifeImage, 
+                    -knife.spriteWidth / 2, // Center the sprite horizontally
+                    -target.radius - knife.spriteHeight, // Position the tip on the log's edge
+                    knife.spriteWidth, // Use larger sprite width
+                    knife.spriteHeight // Use larger sprite height
+                );
             }
             ctx.restore();
         });
@@ -89,8 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawThrowingKnife() {
         if (!imageLoaded) return;
         
-        // The knife's (x, y) is its tip. We draw the image starting from the tip and extending upwards.
-        ctx.drawImage(knifeImage, knife.x - knife.width / 2, knife.y - knife.height, knife.width, knife.height);
+        // --- KEY CHANGE: Use larger sprite dimensions for the throwing knife ---
+        // The knife's (x, y) is its tip. We draw the image above that point.
+        ctx.drawImage(
+            knifeImage, 
+            knife.x - knife.spriteWidth / 2, // Center the larger sprite on the hitbox
+            knife.y - knife.spriteHeight, // Position top of sprite so bottom (tip) is at knife.y
+            knife.spriteWidth, 
+            knife.spriteHeight
+        );
     }
     
     function updateUI() {
@@ -146,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
                 
                 let hitAnotherKnife = false;
-                const safeZone = 0.35; // The minimum angle (in radians) between knives.
+                const safeZone = 0.35;
 
                 for(let k of target.stuckKnives) {
                     let diff = Math.abs(k.angle - hitAngle);
@@ -188,8 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
         update();
     }
 
-
-
     function triggerGameOver() {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
@@ -222,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (throwing) {
             knife.y -= knife.speed;
             checkCollision();
-            if (knife.y < 0) { // Knife went off-screen
+            if (knife.y < 0) {
                 throwing = false;
                 resetKnifePosition();
             }
