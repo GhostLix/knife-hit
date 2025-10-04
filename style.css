@@ -21,7 +21,6 @@ body {
     box-sizing: border-box;
 }
 
-/* New simple wrapper to center ads and give them space */
 .ad-wrapper {
     text-align: center;
     margin: 15px 0;
@@ -85,7 +84,7 @@ canvas {
 }
 .screen p {
     font-size: 1.2em;
-    margin: 10px 0 30px 0;
+    margin: 10px 0 20px 0;
 }
 .screen button {
     padding: 15px 30px;
@@ -112,4 +111,12 @@ canvas {
 }
 #next-level-button:hover {
     background-color: #27ae60;
+}
+
+/* --- NEW: Style for the Native Ad container --- */
+.native-ad-container {
+    margin-top: 30px; /* Space between the button and the ad */
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
