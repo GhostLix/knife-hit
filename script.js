@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Disegna il ceppo
         ctx.save();
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
@@ -57,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineWidth = 10;
         ctx.stroke();
 
-        // Disegna i coltelli conficcati
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
@@ -66,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         ctx.restore();
         
-        // Disegna il coltello da lanciare
         if (gameState === 'playing' && knivesLeft > 0) {
             drawKnifeShape(knife.x, knife.y, knife.width, knife.height);
         }
@@ -74,19 +71,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LOGICA DI GIOCO (Corretta) ---
     function setupLevel() {
-        target.stuckKnives = []; // Ceppo sempre pulito
+        target.stuckKnives = [];
         target.rotation = 0;
         throwing = false;
         knife.y = canvas.height - 150;
 
-        // Aumenta velocità con il livello
         const baseSpeed = 0.015 + level * 0.005;
         target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
         
-        // Aumenta numero di coltelli con il livello
-        knivesLeft = 5 + Math.floor(level / 2);
-
-        // --- RIMOSSA LA LOGICA DEI COLTELLI INIZIALI ---
+        // --- KEY CHANGE: Limita il numero massimo di coltelli a 9 ---
+        knivesLeft = Math.min(5 + Math.floor(level / 2), 9);
         
         scoreElement.textContent = `Level: ${level}`;
         updateKnifeCounter();
