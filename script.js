@@ -16,12 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = 400;
     canvas.height = 600;
 
-    // --- ASSETS ---
-    const knifeImage = new Image();
-    knifeImage.src = './knife-skin.png'; 
-    let imageLoaded = false;
-    knifeImage.onload = () => { imageLoaded = true; };
-    knifeImage.onerror = () => { console.error("Error loading './knife-skin.png'. Ensure the file is in the same folder as index.html."); };
+    // --- ASSETS REMOVED ---
+    // No more image loading needed.
 
     // --- GAME STATE ---
     let gameState = 'start'; 
@@ -41,18 +37,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const knife = {
-        width: 25, height: 85, 
-        spriteWidth: 25 * 1.2, spriteHeight: 85 * 1.2,
-        x: canvas.width / 2, y: canvas.height - 150, speed: 20 
+        // These dimensions now define both the hitbox and the drawing shape.
+        width: 12, 
+        height: 80,
+        x: canvas.width / 2, 
+        y: canvas.height - 150, // Position of the knife's TIP
+        speed: 20 
     };
     
-    // All ad-related functions have been removed from the script.
-
     // --- DRAWING FUNCTIONS ---
+
+    // --- NEW: Function to draw the knife shape ---
+    // The origin (0,0) for this drawing is the TIP of the knife.
+    function drawKnifeShape() {
+        const w = knife.width;
+        const h = knife.height;
+
+        // Blade
+        ctx.fillStyle = '#D0D3D4'; // Light silver
+        ctx.beginPath();
+        ctx.moveTo(0, 0); // Tip
+        ctx.lineTo(-w / 2, -h * 0.5); // Top-left of blade
+        ctx.lineTo(w / 2, -h * 0.5); // Top-right of blade
+        ctx.closePath();
+        ctx.fill();
+
+        // Handle Guard
+        ctx.fillStyle = '#C0C0C0'; // Darker silver
+        ctx.fillRect(-w, -h * 0.5, w * 2, h * 0.1);
+
+        // Handle
+        ctx.fillStyle = '#8B4513'; // Brown
+        ctx.fillRect(-w / 1.5, -h, w * 1.33, h * 0.5);
+    }
+    
     function drawTarget() {
         ctx.save();
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
+        // Log
         ctx.fillStyle = '#8B4513';
         ctx.beginPath();
         ctx.arc(0, 0, target.radius, 0, Math.PI * 2);
@@ -60,18 +83,25 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.strokeStyle = '#5D4037';
         ctx.lineWidth = 8;
         ctx.stroke();
+        // Stuck knives
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
-            if (imageLoaded) ctx.drawImage(knifeImage, -knife.spriteWidth / 2, -target.radius - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
+            // Translate to the edge of the log to draw the knife
+            ctx.translate(0, target.radius); // Move to the edge
+            ctx.rotate(Math.PI); // Flip the knife to point inwards
+            drawKnifeShape(); // Draw the shape instead of an image
             ctx.restore();
         });
         ctx.restore();
     }
     
     function drawThrowingKnife() {
-        if (!imageLoaded) return;
-        ctx.drawImage(knifeImage, knife.x - knife.spriteWidth / 2, knife.y - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
+        ctx.save();
+        // Translate the canvas origin to the knife's tip position
+        ctx.translate(knife.x, knife.y);
+        drawKnifeShape(); // Draw the knife at the new origin
+        ctx.restore();
     }
     
     function updateUI() {
@@ -147,8 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setupLevel();
         update();
     }
-
-
 
     function triggerGameOver() {
         gameState = 'gameOver';
