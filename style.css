@@ -11,6 +11,35 @@ body {
     overflow: hidden;
 }
 
+/* New main wrapper for vertical layout */
+#page-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    width: 100%;
+    padding: 10px 0;
+    box-sizing: border-box;
+}
+
+/* New Ad Container Styles */
+.ad-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#ad-container-top {
+    min-height: 250px;
+}
+
+#ad-container-bottom {
+    min-height: 90px;
+}
+
+/* Original game container */
 #game-container {
     position: relative;
     width: 400px;
@@ -49,7 +78,7 @@ canvas {
     color: #bdc3c7;
 }
 
-/* Screen Overlays (Start, Game Over, Level Complete) */
+/* Screen Overlays */
 .screen {
     position: absolute;
     top: 0;
@@ -69,12 +98,11 @@ canvas {
 .screen h1 {
     font-size: 3em;
     margin: 0 0 20px 0;
-    color: #e74c3c; /* Red for Title/Game Over */
+    color: #e74c3c;
 }
 
-/* Specific style for Level Complete title */
 #level-complete-screen h1 {
-    color: #2ecc71; /* Green for success */
+    color: #2ecc71;
 }
 
 .screen p {
@@ -99,14 +127,14 @@ canvas {
 }
 
 #restart-button {
-    background-color: #e74c3c; /* Red for retry */
+    background-color: #e74c3c;
 }
 #restart-button:hover {
     background-color: #c0392b;
 }
 
 #next-level-button {
-    background-color: #2ecc71; /* Green for next level */
+    background-color: #2ecc71;
 }
 #next-level-button:hover {
     background-color: #27ae60;
