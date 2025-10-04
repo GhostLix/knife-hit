@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const restartButton = document.getElementById('restart-button');
     const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
-    // --- NEW: Ad Containers ---
     const topAdContainer = document.getElementById('ad-container-top');
     const bottomAdContainer = document.getElementById('ad-container-bottom');
 
@@ -53,9 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
         speed: 20 
     };
     
-    // --- NEW: ADVERTISEMENT LOGIC ---
+    // --- ADVERTISEMENT LOGIC ---
     function loadAds() {
-        // Clear previous ads to force a refresh
+        // This function clears the ad containers and injects the ad scripts again.
+        // This forces the ad network to provide a new ad.
+        // Thanks to the CSS, if an ad doesn't load, you'll see an empty grey box.
+        
         topAdContainer.innerHTML = '';
         bottomAdContainer.innerHTML = '';
 
@@ -98,14 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bottomAdContainer.appendChild(bottomAdInvoke);
     }
 
-
     // --- DRAWING FUNCTIONS ---
-
     function drawTarget() {
         ctx.save();
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
-
         ctx.fillStyle = '#8B4513';
         ctx.beginPath();
         ctx.arc(0, 0, target.radius, 0, Math.PI * 2);
@@ -113,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.strokeStyle = '#5D4037';
         ctx.lineWidth = 8;
         ctx.stroke();
-
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
@@ -122,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             ctx.restore();
         });
-        
         ctx.restore();
     }
     
@@ -141,30 +138,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- GAME LOGIC ---
-
+    // --- GAME LOGIC & STATE MANAGEMENT ---
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
         throwing = false;
         resetKnifePosition();
         knivesLeft = knivesPerLevel;
-
         const speedMultiplier = 0.02 + (level * 0.005);
         target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(speedMultiplier, 0.03);
-        
         const obstacles = Math.min(Math.floor((level - 1) * 0.7), 5);
         for(let i = 0; i < obstacles; i++) {
             const angle = (Math.PI * 2 / obstacles) * i + (Math.random() - 0.5) * 0.5;
             target.stuckKnives.push({ angle: angle });
         }
-        
         updateUI();
     }
 
-    function resetKnifePosition() {
-        knife.y = canvas.height - 150;
-    }
+    function resetKnifePosition() { knife.y = canvas.height - 150; }
 
     function throwKnife() {
         if (knivesLeft > 0 && !throwing && gameState === 'playing') {
@@ -176,47 +167,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checkCollision() {
         const knifeTipY = knife.y;
-        
         if (knifeTipY <= target.y + target.radius) {
             const distance = Math.sqrt(Math.pow(knife.x - target.x, 2) + Math.pow(knifeTipY - target.y, 2));
-            
             if (distance <= target.radius) {
                 const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
-                
                 let hitAnotherKnife = false;
                 const safeZone = 0.35;
-
                 for(let k of target.stuckKnives) {
                     let diff = Math.abs(k.angle - hitAngle);
                     diff = Math.min(diff, Math.PI * 2 - diff);
-
                     if (diff < safeZone) {
                         hitAnotherKnife = true;
                         break;
                     }
                 }
-
-                if (hitAnotherKnife) {
-                    triggerGameOver();
-                } else {
+                if (hitAnotherKnife) { triggerGameOver(); } 
+                else {
                     target.stuckKnives.push({ angle: hitAngle });
                     throwing = false;
                     resetKnifePosition();
-
-                    if (knivesLeft === 0) {
-                        setTimeout(showLevelComplete, 300);
-                    }
+                    if (knivesLeft === 0) { setTimeout(showLevelComplete, 300); }
                 }
             }
         }
     }
     
-    // --- STATE MANAGEMENT FUNCTIONS ---
-
     function showLevelComplete() {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
-        loadAds(); // Refresh ads
+        loadAds();
     }
 
     function proceedToNextLevel() {
@@ -225,14 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
-        loadAds(); // Refresh ads
+        loadAds();
     }
 
     function triggerGameOver() {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
-        loadAds(); // Refresh ads
+        loadAds();
     }
     
     function retryCurrentLevel() {
@@ -240,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
-        loadAds(); // Refresh ads
+        loadAds();
     }
 
     function startFirstGame() {
@@ -249,17 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
-        loadAds(); // Refresh ads
+        loadAds();
     }
 
     // --- MAIN GAME LOOP ---
-    
     function update() {
         if (gameState !== 'playing') return;
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         target.rotation += target.rotationSpeed;
-        
         if (throwing) {
             knife.y -= knife.speed;
             checkCollision();
@@ -268,38 +244,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 resetKnifePosition();
             }
         }
-
         drawTarget(); 
-        
-        if(knivesLeft > 0 || throwing) {
-            drawThrowingKnife();
-        }
-
+        if(knivesLeft > 0 || throwing) { drawThrowingKnife(); }
         requestAnimationFrame(update);
     }
     
     // --- EVENT LISTENERS ---
-    
     startButton.addEventListener('click', startFirstGame);
     restartButton.addEventListener('click', retryCurrentLevel);
     nextLevelButton.addEventListener('click', proceedToNextLevel);
 
     function handleInput(e) {
         if(e.type === 'touchstart') e.preventDefault();
-        if (gameState === 'playing') {
-            throwKnife();
-        }
+        if (gameState === 'playing') { throwKnife(); }
     }
 
     canvas.addEventListener('mousedown', handleInput);
     canvas.addEventListener('touchstart', handleInput, {passive: false});
-    
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && gameState === 'playing') {
-            throwKnife();
-        }
+        if (e.code === 'Space' && gameState === 'playing') { throwKnife(); }
     });
 
     // --- INITIAL LOAD ---
-    loadAds(); // Load ads for the very first time on the start screen.
-});
+    loadAds();
+});```
