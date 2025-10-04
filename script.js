@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- ELEMENTI DEL DOM ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
@@ -11,28 +12,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
 
+    // --- IMPOSTAZIONI DI GIOCO ---
     canvas.width = 400;
     canvas.height = 600;
-
-    let gameState = 'start'; 
+    const KNIVES_PER_LEVEL = 7;
+    
+    // --- STATO DEL GIOCO ---
+    let gameState = 'start'; // 'start', 'playing', 'gameOver', 'levelComplete'
     let level = 1;
-    let knivesLeft;
+    let knivesLeft = KNIVES_PER_LEVEL;
     let throwing = false;
-    const knivesPerLevel = 7;
-    let logParticles = [];
-
+    
+    // --- OGGETTI DI GIOCO ---
     const target = {
-        x: canvas.width / 2, y: 200, radius: 80,
-        rotation: 0, rotationSpeed: 0,
-        stuckKnives: [], visible: true
+        x: canvas.width / 2,
+        y: 200,
+        radius: 80,
+        rotation: 0,
+        rotationSpeed: 0,
+        stuckKnives: [] // Array di angoli
     };
 
     const knife = {
-        width: 14, height: 85,
-        x: canvas.width / 2, y: canvas.height - 150,
+        width: 14,
+        height: 85,
+        x: canvas.width / 2,
+        y: canvas.height - 150,
         speed: 25
     };
 
+    // --- FUNZIONI DI DISEGNO (SEMPLIFICATE E CORRETTE) ---
     function drawKnifeShape() {
         const w = knife.width;
         const h = knife.height;
@@ -43,49 +52,101 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineTo(w / 2, -h * 0.4); ctx.closePath(); ctx.fill();
     }
 
-    function drawTarget() {
-        if (!target.visible) return;
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Disegna il ceppo e i coltelli conficcati
         ctx.save();
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
+        
         ctx.fillStyle = '#A0522D'; ctx.beginPath();
         ctx.arc(0, 0, target.radius, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#6B4226'; ctx.lineWidth = 10; ctx.stroke();
-        target.stuckKnives.forEach(k => {
+        
+        target.stuckKnives.forEach(angle => {
             ctx.save();
-            ctx.rotate(k.angle); ctx.translate(0, target.radius);
+            ctx.rotate(angle);
+            ctx.translate(0, target.radius);
             drawKnifeShape();
             ctx.restore();
         });
         ctx.restore();
+
+        // Disegna il coltello da lanciare
+        if (gameState === 'playing' && knivesLeft > 0) {
+            ctx.save();
+            ctx.translate(knife.x, knife.y);
+            drawKnifeShape();
+            ctx.restore();
+        }
     }
 
-    function drawThrowingKnife() {
-        ctx.save();
-        ctx.translate(knife.x, knife.y);
-        drawKnifeShape();
-        ctx.restore();
-    }
+    // --- FUNZIONI DI LOGICA (RISCRITTE DA ZERO) ---
+    function update() {
+        if (gameState !== 'playing') return;
 
-    function drawParticles() {
-        logParticles.forEach((p, index) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.1; // Gravity
-            p.alpha -= 0.02;
-            if (p.alpha <= 0) {
-                logParticles.splice(index, 1);
-            } else {
-                ctx.fillStyle = `rgba(160, 82, 45, ${p.alpha})`;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
+        target.rotation += target.rotationSpeed;
+        
+        if (throwing) {
+            knife.y -= knife.speed;
+
+            // Se il coltello esce dallo schermo (mancato)
+            if (knife.y < -knife.height) {
+                endThrow(false); // Sconfitta per aver mancato
             }
-        });
+
+            // Rilevamento collisione con il ceppo
+            const distance = Math.hypot(knife.x - target.x, knife.y - target.y);
+            if (distance <= target.radius) {
+                const hitAngle = Math.atan2(knife.y - target.y, knife.x - target.x) - target.rotation;
+                
+                // Controlla se colpisce un altro coltello
+                let collision = false;
+                const safeZone = 0.4; // Angolo minimo
+                target.stuckKnives.forEach(stuckAngle => {
+                    let diff = Math.abs(hitAngle - stuckAngle);
+                    diff = Math.min(diff, Math.PI * 2 - diff);
+                    if (diff < safeZone) {
+                        collision = true;
+                    }
+                });
+                
+                if (collision) {
+                    endThrow(false); // Sconfitta per aver colpito un altro coltello
+                } else {
+                    endThrow(true, hitAngle); // Colpo andato a segno
+                }
+            }
+        }
+        
+        draw();
+        requestAnimationFrame(update);
+    }
+    
+    function endThrow(success, hitAngle = 0) {
+        throwing = false;
+        if (success) {
+            target.stuckKnives.push(hitAngle);
+            if (knivesLeft === 0) {
+                // Vittoria
+                gameState = 'levelComplete';
+                setTimeout(() => levelCompleteScreen.style.display = 'flex', 500);
+            } else {
+                knife.y = canvas.height - 150; // Reset per il prossimo lancio
+            }
+        } else {
+            // Sconfitta
+            gameState = 'gameOver';
+            finalLevelElement.textContent = level;
+            setTimeout(() => gameOverScreen.style.display = 'flex', 200);
+        }
     }
 
     function updateUI() {
         scoreElement.textContent = `Level: ${level}`;
         knifeCounterElement.innerHTML = '';
-        for (let i = 0; i < knivesPerLevel; i++) {
+        for (let i = 0; i < KNIVES_PER_LEVEL; i++) {
             const knifeIcon = document.createElement('span');
             knifeIcon.textContent = '🗡️';
             if (i >= knivesLeft) {
@@ -98,144 +159,52 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
-        target.visible = true;
-        throwing = false;
-        logParticles = [];
-        resetKnifePosition();
-        knivesLeft = knivesPerLevel;
-        const speedMultiplier = 0.02 + (level * 0.005);
+        knivesLeft = KNIVES_PER_LEVEL;
+        const speedMultiplier = 0.02 + level * 0.005;
         target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(speedMultiplier, 0.03);
-        const obstacles = Math.min(Math.floor((level - 1) * 0.7), 5);
-        for(let i = 0; i < obstacles; i++) {
-            const angle = (Math.PI * 2 / obstacles) * i + (Math.random() - 0.5) * 0.5;
-            target.stuckKnives.push({ angle: angle });
+        const obstacles = Math.min(Math.floor(level * 0.7), 5);
+        for (let i = 0; i < obstacles; i++) {
+            target.stuckKnives.push(Math.random() * Math.PI * 2);
         }
         updateUI();
     }
 
-    function resetKnifePosition() { knife.y = canvas.height - 150; }
-
-    function throwKnife() {
-        if (knivesLeft > 0 && !throwing && gameState === 'playing') {
-            throwing = true;
-            knivesLeft--;
-            updateUI();
-        }
-    }
-
-    function checkCollision() {
-        const knifeTipY = knife.y;
-        if (knifeTipY <= target.y + target.radius) {
-            const distance = Math.sqrt(Math.pow(knife.x - target.x, 2) + Math.pow(knifeTipY - target.y, 2));
-            if (distance <= target.radius) {
-                const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation;
-                let hitAnotherKnife = false;
-                const safeZone = 0.35;
-                for(let k of target.stuckKnives) {
-                    let diff = Math.abs(k.angle - hitAngle);
-                    diff = Math.min(diff, Math.PI * 2 - diff);
-                    if (diff < safeZone) { hitAnotherKnife = true; break; }
-                }
-
-                if (hitAnotherKnife) {
-                    triggerGameOver();
-                } else {
-                    target.stuckKnives.push({ angle: hitAngle });
-                    throwing = false;
-                    resetKnifePosition();
-                    if (knivesLeft === 0) {
-                        startLevelTransition();
-                    }
-                }
-            }
-        }
-    }
-
-    function startLevelTransition() {
-        gameState = 'levelTransition';
-        target.visible = false;
-        for (let i = 0; i < 50; i++) {
-            logParticles.push({
-                x: target.x, y: target.y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                size: Math.random() * 5 + 2,
-                alpha: 1
-            });
-        }
-        setTimeout(showLevelComplete, 1000);
-    }
-
-    function showLevelComplete() {
-        levelCompleteScreen.style.display = 'flex';
-    }
-
-    function proceedToNextLevel() {
-        level++;
-        levelCompleteScreen.style.display = 'none';
-        gameState = 'playing';
-        setupLevel();
-        update();
-    }
-
-    function triggerGameOver() {
-        gameState = 'gameOver';
-        finalLevelElement.textContent = level;
-        canvas.classList.add('shake');
-        setTimeout(() => {
-            gameOverScreen.style.display = 'flex';
-            canvas.classList.remove('shake');
-        }, 500);
-    }
-    
-    function retryCurrentLevel() {
-        gameOverScreen.style.display = 'none';
-        gameState = 'playing';
-        setupLevel();
-        update();
-    }
-
-    function startFirstGame() {
+    // --- GESTIONE DEGLI STATI DI GIOCO ---
+    function startGame() {
         level = 1;
         startScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
-        update();
-    }
-
-    function update() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (gameState === 'playing') {
-            target.rotation += target.rotationSpeed;
-            if (throwing) {
-                knife.y -= knife.speed;
-                checkCollision();
-                if (knife.y < -knife.height) { triggerGameOver(); }
-            }
-        }
-        drawTarget();
-        if (gameState === 'playing' && (knivesLeft > 0 || throwing)) {
-            drawThrowingKnife();
-        }
-        if (logParticles.length > 0) {
-            drawParticles();
-        }
         requestAnimationFrame(update);
     }
-    
-    startButton.addEventListener('click', startFirstGame);
-    restartButton.addEventListener('click', retryCurrentLevel);
-    nextLevelButton.addEventListener('click', proceedToNextLevel);
 
-    function handleInput(e) {
-        if(e.type === 'touchstart') e.preventDefault();
-        if (gameState === 'playing') { throwKnife(); }
+    function nextLevel() {
+        level++;
+        levelCompleteScreen.style.display = 'none';
+        gameState = 'playing';
+        setupLevel();
     }
-    canvas.addEventListener('mousedown', handleInput);
-    canvas.addEventListener('touchstart', handleInput, {passive: false});
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && gameState === 'playing') { throwKnife(); }
+
+    function retryLevel() {
+        gameOverScreen.style.display = 'none';
+        gameState = 'playing';
+        setupLevel();
+    }
+
+    // --- EVENT LISTENERS ---
+    startButton.addEventListener('click', startGame);
+    nextLevelButton.addEventListener('click', nextLevel);
+    restartButton.addEventListener('click', retryLevel);
+
+    canvas.addEventListener('click', () => {
+        if (gameState === 'playing' && !throwing && knivesLeft > 0) {
+            knivesLeft--;
+            updateUI();
+            throwing = true;
+            knife.y = canvas.height - 150;
+        }
     });
 
-    update(); // Start the loop immediately
+    // Disegno iniziale
+    draw();
 });
