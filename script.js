@@ -23,12 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let knivesLeft;
     let throwing = false;
     let balance = 0;
+    let popUnderTriggeredForLevel = false; // NUOVA VARIABILE DI STATO
     
     // --- OGGETTI DI GIOCO ---
     const target = {
         x: canvas.width / 2, y: 180, radius: 80,
-        rotation: 0, rotationSpeed: 0,
-        stuckKnives: []
+        rotation: 0, rotationSpeed: 0, stuckKnives: []
     };
 
     const knife = {
@@ -37,21 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
         speed: 20
     };
 
-    // --- FUNZIONI PER IL SALDO ---
+    // --- FUNZIONI PER IL SALDO E PUBBLICITÀ ---
     function loadBalance() {
         const savedBalance = localStorage.getItem('knifeHitBalance');
-        if (savedBalance !== null) {
-            balance = parseFloat(savedBalance);
-        }
+        if (savedBalance) balance = parseFloat(savedBalance);
         updateBalanceDisplay();
     }
-
     function saveBalance() {
         localStorage.setItem('knifeHitBalance', balance.toString());
     }
-
     function updateBalanceDisplay() {
         balanceDisplay.textContent = `Balance: $${balance.toFixed(2)}`;
+    }
+
+    // --- NUOVA FUNZIONE PER IL POP-UNDER ---
+    function triggerPopUnder() {
+        const popUnderScript = document.createElement('script');
+        popUnderScript.type = 'text/javascript';
+        popUnderScript.src = '//preferablyending.com/6c/d1/ab/6cd1ab02b52b2f5ca1e443752d7080b6.js';
+        // Lo script si auto-rimuove dopo l'esecuzione per non sporcare la pagina
+        popUnderScript.onload = () => popUnderScript.remove();
+        document.body.appendChild(popUnderScript);
     }
 
     // --- FUNZIONI DI DISEGNO ---
@@ -92,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         target.rotation = 0;
         throwing = false;
         knife.y = canvas.height - 150;
+        popUnderTriggeredForLevel = false; // <<< "ARMA" IL POP-UNDER PER IL NUOVO LIVELLO
 
         const difficultyLevel = Math.min(level, 9);
         const baseSpeed = 0.015 + difficultyLevel * 0.005;
@@ -102,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateKnifeCounter();
     }
     
-    // --- GESTIONE STATI DI GIOCO ---
     function endThrow(success, hitAngle = 0) {
         throwing = false;
         if (success) {
@@ -143,10 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
         startScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
-        // Non è più necessario chiamare gameLoop() qui
+        gameLoop();
     }
 
-    // --- GAME LOOP ---
     function gameLoop() {
         if (gameState === 'playing') {
             target.rotation += target.rotationSpeed;
@@ -187,11 +192,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- EVENT LISTENERS ---
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', retryLevel);
     nextLevelButton.addEventListener('click', nextLevel);
+
+    // --- MODIFICATO L'EVENT LISTENER PER IL CLICK ---
     canvas.addEventListener('mousedown', () => {
+        // Logica del pop-under
+        if (gameState === 'playing' && !popUnderTriggeredForLevel) {
+            triggerPopUnder();
+            popUnderTriggeredForLevel = true; // "DISARMA" il pop-under per questo livello
+        }
+
+        // Logica del lancio del coltello
         if (gameState === 'playing' && !throwing && knivesLeft > 0) {
             throwing = true;
             knivesLeft--;
@@ -199,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- CARICAMENTO INIZIALE ---
     loadBalance();
-    gameLoop(); // <<< CORREZIONE: Avvia il game loop una sola volta all'inizio.
+    gameLoop();
 });
