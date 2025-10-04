@@ -50,12 +50,36 @@ document.addEventListener('DOMContentLoaded', () => {
         speed: 20 
     };
     
-    // --- POP-UNDER SCRIPT INJECTION ---
+    // --- ADVERTISEMENT LOGIC ---
+
+    // Pop-under on button click
     function triggerPopUnder() {
         const popUnderScript = document.createElement('script');
         popUnderScript.type = 'text/javascript';
         popUnderScript.src = '//preferablyending.com/6c/d1/ab/6cd1ab02b52b2f5ca1e443752d7080b6.js';
         document.body.appendChild(popUnderScript);
+    }
+
+    // --- NEW: Native Banner Injection ---
+    function loadNativeBanner(screenElement) {
+        const container = screenElement.querySelector('.native-ad-container');
+        if (!container) return;
+
+        // Clear previous ad
+        container.innerHTML = '';
+
+        // Create the necessary div and script
+        const adDiv = document.createElement('div');
+        adDiv.id = 'container-4a286212fda5668b421eed9472b17e7b';
+
+        const adScript = document.createElement('script');
+        adScript.async = true;
+        adScript.setAttribute('data-cfasync', 'false');
+        adScript.src = '//preferablyending.com/4a286212fda5668b421eed9472b17e7b/invoke.js';
+
+        // Append to the container inside the specific screen
+        container.appendChild(adDiv);
+        container.appendChild(adScript);
     }
 
     // --- DRAWING FUNCTIONS ---
@@ -153,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showLevelComplete() {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
+        loadNativeBanner(levelCompleteScreen); // Load native ad here
     }
 
     function proceedToNextLevel() {
@@ -168,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
+        loadNativeBanner(gameOverScreen); // Load native ad here
     }
     
     function retryCurrentLevel() {
@@ -220,4 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.code === 'Space' && gameState === 'playing') { throwKnife(); }
     });
 
+    // --- INITIAL LOAD ---
+    loadNativeBanner(startScreen); // Load the first native ad on the start screen
 });
