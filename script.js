@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const knifeCounterElement = document.getElementById('knife-counter');
     const startScreen = document.getElementById('start-screen');
     const gameOverScreen = document.getElementById('gameover-screen');
-    const levelCompleteScreen = document.getElementById('level-complete-screen'); // Mantenuto
+    const levelCompleteScreen = document.getElementById('level-complete-screen');
     const startButton = document.getElementById('start-button');
     const restartButton = document.getElementById('restart-button');
-    const nextLevelButton = document.getElementById('next-level-button'); // Mantenuto
+    const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
 
     // --- IMPOSTAZIONI DI GIOCO ---
@@ -17,13 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.height = 600;
 
     // --- ASSET ---
-    const knifeImage = new Image();
-    knifeImage.src = 'https://i.ibb.co/wJg4V3C/knife-sprite.png'; // Immagine stabile
-    let imageLoaded = false;
-    knifeImage.onload = () => { imageLoaded = true; };
+    // Rimossa la logica di caricamento immagine
 
     // --- STATO DEL GIOCO ---
-    let gameState = 'start'; // 'start', 'playing', 'gameOver', 'levelComplete'
+    let gameState = 'start';
     let level = 1;
     let knivesLeft;
     let throwing = false;
@@ -39,14 +36,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const knife = {
-        width: 15,
-        height: 100,
+        width: 10, // Larghezza del rettangolo (hitbox)
+        height: 70, // Altezza del rettangolo (hitbox)
         x: canvas.width / 2,
         y: canvas.height - 150,
         speed: 20
     };
 
-    // --- FUNZIONI DI DISEGNO (dalla versione stabile) ---
+    // --- FUNZIONI DI DISEGNO (con rettangoli) ---
     function drawTarget() {
         ctx.save();
         ctx.translate(target.x, target.y);
@@ -63,9 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
-            if (imageLoaded) {
-                ctx.drawImage(knifeImage, -knife.width / 2, -target.radius - knife.height, knife.width, knife.height);
-            }
+            // Disegna il rettangolo-coltello conficcato
+            ctx.fillStyle = '#7f8c8d'; // Grigio per la lama
+            ctx.fillRect(-knife.width / 2, -target.radius - knife.height, knife.width, knife.height * 0.7);
+            ctx.fillStyle = '#8B4513'; // Marrone per il manico
+            ctx.fillRect(-knife.width / 2, -target.radius - knife.height * 0.3, knife.width, knife.height * 0.3);
             ctx.restore();
         });
         
@@ -73,9 +72,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function drawKnife() {
-        if (imageLoaded) {
-            ctx.drawImage(knifeImage, knife.x - knife.width / 2, knife.y - knife.height, knife.width, knife.height);
-        }
+        // Disegna il rettangolo-coltello da lanciare
+        const bladeHeight = knife.height * 0.7;
+        const handleHeight = knife.height * 0.3;
+        
+        // Disegna la lama
+        ctx.fillStyle = '#bdc3c7'; // Grigio chiaro
+        ctx.fillRect(knife.x - knife.width / 2, knife.y - knife.height, knife.width, bladeHeight);
+        
+        // Disegna il manico
+        ctx.fillStyle = '#A0522D'; // Marrone chiaro
+        ctx.fillRect(knife.x - knife.width / 2, knife.y - handleHeight, knife.width, handleHeight);
     }
 
     function updateKnifeCounter() {
@@ -87,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- LOGICA DI GIOCO (dalla versione stabile) ---
+    // --- LOGICA DI GIOCO (invariata) ---
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
@@ -151,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- GESTIONE STATI DI GIOCO (integrata con la struttura attuale) ---
+    // --- GESTIONE STATI DI GIOCO (invariata) ---
     function triggerGameOver() {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
@@ -176,13 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
         startScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
-        update(); // Avvia il game loop
+        update();
     }
 
-    // --- GAME LOOP (dalla versione stabile) ---
+    // --- GAME LOOP (invariato) ---
     function update() {
         if (gameState !== 'playing') {
-            requestAnimationFrame(update); // Continua a chiamare per non bloccare il browser
+            requestAnimationFrame(update);
             return;
         }
 
@@ -205,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(update);
     }
     
-    // --- EVENT LISTENERS ---
+    // --- EVENT LISTENERS (invariati) ---
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', retryLevel);
     nextLevelButton.addEventListener('click', nextLevel);
