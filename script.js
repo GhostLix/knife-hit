@@ -68,11 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- LOGICA DI GIOCO ---
+    // --- LOGICA DI GIOCO (ROBUSTA) ---
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
-        throwing = false; // <<< Correzione cruciale: resetta sempre lo stato di lancio
+        throwing = false; // <<< Reset cruciale
         knife.y = canvas.height - 150;
 
         const speedLevel = Math.min(level, 10);
@@ -89,33 +89,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         knivesLeft = Math.min(5 + Math.floor(level / 2), 9);
-        
         scoreElement.textContent = `Level: ${level}`;
         updateKnifeCounter();
     }
-
-    function throwKnife() {
-        if (knivesLeft > 0 && !throwing && gameState === 'playing') {
-            throwing = true;
-            knivesLeft--;
-            updateKnifeCounter();
-        }
-    }
-
-    // --- GESTIONE STATI DI GIOCO (ROBUSTA) ---
-    function triggerGameOver() {
-        if (gameState === 'gameOver') return; // Previene chiamate multiple
-        gameState = 'gameOver';
-        throwing = false; // <<< Correzione cruciale
-        finalLevelElement.textContent = level;
-        gameOverScreen.style.display = 'flex';
-    }
     
-    function triggerLevelComplete() {
-        if (gameState === 'levelComplete') return;
-        gameState = 'levelComplete';
-        throwing = false; // <<< Correzione cruciale
-        setTimeout(() => levelCompleteScreen.style.display = 'flex', 800);
+    // --- GESTIONE STATI DI GIOCO ---
+    function endThrow(success, hitAngle = 0) {
+        throwing = false; // <<< Funzione centralizzata per resettare lo stato
+
+        if (success) {
+            target.stuckKnives.push({ angle: hitAngle });
+            knife.y = canvas.height - 150;
+            if (knivesLeft === 0) {
+                gameState = 'levelComplete';
+                setTimeout(() => levelCompleteScreen.style.display = 'flex', 800);
+            }
+        } else {
+            gameState = 'gameOver';
+            finalLevelElement.textContent = level;
+            gameOverScreen.style.display = 'flex';
+        }
     }
     
     function retryLevel() {
@@ -139,11 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
         gameLoop();
     }
 
-    // --- GAME LOOP (RISCRITTO PER STABILITÀ) ---
+    // --- GAME LOOP ---
     function gameLoop() {
-        // 1. Aggiorna lo stato del gioco (solo se in 'playing')
+        // Logica di aggiornamento solo se il gioco è attivo
         if (gameState === 'playing') {
-            // Aggiorna la velocità se irregolare
+            // Aggiorna velocità
             if (level > 10) {
                 target.wobbleAngle += target.wobbleSpeed;
                 const wobbleEffect = Math.sin(target.wobbleAngle) * target.wobbleAmplitude;
@@ -157,50 +150,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Mancato (fuori schermo)
                 if (knife.y < -knife.height) {
-                    triggerGameOver();
-                } else {
-                    // Controlla collisione con ceppo
-                    const knifeTipY = knife.y - knife.height;
-                    const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
-                    if (distance < target.radius) {
-                        const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
-                        let collision = false;
-                        const minAngleDiff = 0.35;
-                        for (const k of target.stuckKnives) {
-                            let diff = Math.abs(k.angle - hitAngle);
-                            if (Math.min(diff, Math.PI * 2 - diff) < minAngleDiff) {
-                                collision = true;
-                                break;
-                            }
-                        }
+                    endThrow(false); // Sconfitta
+                }
 
-                        if (collision) {
-                            triggerGameOver();
-                        } else {
-                            throwing = false;
-                            target.stuckKnives.push({ angle: hitAngle });
-                            knife.y = canvas.height - 150;
-                            if (knivesLeft === 0) {
-                                triggerLevelComplete();
-                            }
+                // Collisione con ceppo
+                const knifeTipY = knife.y - knife.height;
+                const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
+
+                if (distance < target.radius) {
+                    const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
+                    let collision = false;
+                    const minAngleDiff = 0.35;
+                    for (const k of target.stuckKnives) {
+                        let diff = Math.abs(k.angle - hitAngle);
+                        if (Math.min(diff, Math.PI * 2 - diff) < minAngleDiff) {
+                            collision = true;
+                            break;
                         }
                     }
+                    endThrow(collision ? false : true, hitAngle); // Chiama la funzione di fine lancio
                 }
             }
         }
         
-        // 2. Disegna sempre lo stato corrente
+        // Il disegno avviene sempre, indipendentemente dallo stato
         draw();
         
-        // 3. Continua il ciclo
         requestAnimationFrame(gameLoop);
     }
 
     function updateKnifeCounter() {
         knifeCounterElement.innerHTML = '';
-        for (let i = 0; i < knivesLeft; i++) {
+        const totalKnives = Math.min(5 + Math.floor(level / 2), 9);
+        for (let i = 0; i < totalKnives; i++) {
             const knifeIcon = document.createElement('span');
             knifeIcon.textContent = '🗡️';
+            // Mostra come usati i coltelli già lanciati
+            if (i >= knivesLeft) {
+                knifeIcon.style.opacity = '0.3';
+            }
             knifeCounterElement.appendChild(knifeIcon);
         }
     }
@@ -211,8 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
     nextLevelButton.addEventListener('click', nextLevel);
 
     canvas.addEventListener('mousedown', () => {
-        if (gameState === 'playing') {
-            throwKnife();
+        if (gameState === 'playing' && !throwing && knivesLeft > 0) {
+            throwing = true;
+            knivesLeft--;
+            updateKnifeCounter();
         }
     });
 });
