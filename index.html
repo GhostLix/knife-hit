@@ -9,8 +9,6 @@
 </head>
 <body>
     <div id="page-wrapper">
-
-        <!-- Top Ad Banner (300x250) -->
         <div class="ad-wrapper">
             <script type="text/javascript">
                 atOptions = { 'key' : '8ee0ea4930ab98951f62e50eadf3788e', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
@@ -18,7 +16,6 @@
             <script type="text/javascript" src="//www.highperformanceformat.com/8ee0ea4930ab98951f62e50eadf3788e/invoke.js"></script>
         </div>
 
-        <!-- The Game Container -->
         <div id="game-container">
             <div id="ui-container">
                 <div id="score">Level: 1</div>
@@ -26,31 +23,27 @@
             </div>
             <canvas id="gameCanvas"></canvas>
             
-            <!-- Screens -->
+            <!-- Screens (now without native ad containers inside) -->
             <div id="start-screen" class="screen">
                 <h1>KNIFE HIT</h1>
                 <p>Hit the log with all knives.</p>
                 <p>Don't hit any other knives!</p>
                 <button id="start-button">Start Game</button>
-                <!-- Native Ad container for this screen -->
-                <div class="native-ad-container"></div>
             </div>
             <div id="level-complete-screen" class="screen" style="display: none;">
                 <h1>LEVEL COMPLETE!</h1>
                 <button id="next-level-button">Next Level</button>
-                <!-- Native Ad container for this screen -->
-                <div class="native-ad-container"></div>
             </div>
             <div id="gameover-screen" class="screen" style="display: none;">
                 <h1>GAME OVER</h1>
                 <p>Level reached: <span id="final-level">1</span></p>
                 <button id="restart-button">Retry Level</button>
-                <!-- Native Ad container for this screen -->
-                <div class="native-ad-container"></div>
             </div>
+
+            <!-- NEW: Single, permanent overlay for the native ad -->
+            <div id="native-ad-overlay" style="display: none;"></div>
         </div>
 
-        <!-- Bottom Ad Banner (728x90) -->
         <div class="ad-wrapper">
             <script type="text/javascript">
                 atOptions = { 'key' : 'e35460be4ebeb54d70231e9e3e3bf980', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
@@ -58,7 +51,6 @@
             <script type="text/javascript" src="//www.highperformanceformat.com/e35460be4ebeb54d70231e9e3e3bf980/invoke.js"></script>
         </div>
     </div>
-    
     <script src="script.js"></script>
 </body>
 </html>
