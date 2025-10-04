@@ -20,10 +20,19 @@ body {
     padding: 10px 0;
     box-sizing: border-box;
 }
+
 .ad-wrapper {
     text-align: center;
     margin: 15px 0;
+    /* This ensures that even if an ad doesn't load, space is not totally collapsed */
+    min-height: 90px;
 }
+
+/* Specific min-height for the top banner spot */
+.ad-wrapper:first-child {
+    min-height: 250px;
+}
+
 #game-container {
     position: relative;
     width: 400px;
@@ -70,7 +79,7 @@ canvas {
     align-items: center;
     text-align: center;
     border-radius: 10px;
-    z-index: 20; /* High z-index to be on top of everything */
+    z-index: 20;
 }
 .screen h1 {
     font-size: 3em;
@@ -109,18 +118,220 @@ canvas {
 }
 #next-level-button:hover {
     background-color: #27ae60;
-}
+}```
 
-/* --- NEW: Style for the single ad overlay --- */
-#native-ad-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 250px; /* Adjust height as needed */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 25; /* Higher than screens to appear on top of them */
-    pointer-events: auto; /* Allow clicks on the ad */
-}
+---
+
+### File 3: `script.js` (Aggiornato)
+
+Ho rimosso completamente tutta la logica legata al native banner (`showNativeBanner`, `hideNativeBanner`), lasciando solo il codice essenziale del gioco e la funzione `triggerPopUnder` che hai voluto mantenere (anche se ora è ridondante, dato che lo script principale è nell'head).
+
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM ELEMENTS ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    const knifeCounterElement = document.getElementById('knife-counter');
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('gameover-screen');
+    const levelCompleteScreen = document.getElementById('level-complete-screen');
+    const startButton = document.getElementById('start-button');
+    const restartButton = document.getElementById('restart-button');
+    const nextLevelButton = document.getElementById('next-level-button');
+    const finalLevelElement = document.getElementById('final-level');
+
+    // Canvas setup
+    canvas.width = 400;
+    canvas.height = 600;
+
+    // --- ASSETS ---
+    const knifeImage = new Image();
+    knifeImage.src = './knife-skin.png'; 
+    let imageLoaded = false;
+    knifeImage.onload = () => { imageLoaded = true; };
+    knifeImage.onerror = () => { console.error("Error loading './knife-skin.png'. Ensure the file is in the same folder as index.html."); };
+
+    // --- GAME STATE ---
+    let gameState = 'start'; 
+    let level = 1;
+    let knivesLeft;
+    let throwing = false;
+    const knivesPerLevel = 7;
+    
+    // --- GAME OBJECTS ---
+    const target = {
+        x: canvas.width / 2,
+        y: 200,
+        radius: 80,
+        rotation: 0,
+        rotationSpeed: 0,
+        stuckKnives: [] 
+    };
+
+    const knife = {
+        width: 25, height: 85, 
+        spriteWidth: 25 * 1.2, spriteHeight: 85 * 1.2,
+        x: canvas.width / 2, y: canvas.height - 150, speed: 20 
+    };
+    
+    // Note: The main pop-under is now in the <head>. This function can be kept for specific triggers if needed,
+    // but the primary pop-under will work on its own.
+    function triggerPopUnder() {
+        // This function could still be used if you get a different on-click pop-under script in the future.
+        // For now, it is not strictly necessary as the main one is in the HTML head.
+    }
+
+    // --- DRAWING FUNCTIONS ---
+    function drawTarget() {
+        ctx.save();
+        ctx.translate(target.x, target.y);
+        ctx.rotate(target.rotation);
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.arc(0, 0, target.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#5D4037';
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        target.stuckKnives.forEach(k => {
+            ctx.save();
+            ctx.rotate(k.angle);
+            if (imageLoaded) ctx.drawImage(knifeImage, -knife.spriteWidth / 2, -target.radius - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
+            ctx.restore();
+        });
+        ctx.restore();
+    }
+    
+    function drawThrowingKnife() {
+        if (!imageLoaded) return;
+        ctx.drawImage(knifeImage, knife.x - knife.spriteWidth / 2, knife.y - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
+    }
+    
+    function updateUI() {
+        scoreElement.textContent = `Level: ${level}`;
+        knifeCounterElement.innerHTML = '';
+        for (let i = 0; i < knivesLeft; i++) {
+            const knifeIcon = document.createElement('span');
+            knifeIcon.textContent = '🗡️'; 
+            knifeCounterElement.appendChild(knifeIcon);
+        }
+    }
+
+    // --- GAME LOGIC & STATE MANAGEMENT ---
+    function setupLevel() {
+        target.stuckKnives = [];
+        target.rotation = 0;
+        throwing = false;
+        resetKnifePosition();
+        knivesLeft = knivesPerLevel;
+        const speedMultiplier = 0.02 + (level * 0.005);
+        target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(speedMultiplier, 0.03);
+        const obstacles = Math.min(Math.floor((level - 1) * 0.7), 5);
+        for(let i = 0; i < obstacles; i++) {
+            const angle = (Math.PI * 2 / obstacles) * i + (Math.random() - 0.5) * 0.5;
+            target.stuckKnives.push({ angle: angle });
+        }
+        updateUI();
+    }
+
+    function resetKnifePosition() { knife.y = canvas.height - 150; }
+
+    function throwKnife() {
+        if (knivesLeft > 0 && !throwing && gameState === 'playing') {
+            throwing = true;
+            knivesLeft--;
+            updateUI();
+        }
+    }
+
+    function checkCollision() {
+        const knifeTipY = knife.y;
+        if (knifeTipY <= target.y + target.radius) {
+            const distance = Math.sqrt(Math.pow(knife.x - target.x, 2) + Math.pow(knifeTipY - target.y, 2));
+            if (distance <= target.radius) {
+                const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
+                let hitAnotherKnife = false;
+                const safeZone = 0.35;
+                for(let k of target.stuckKnives) {
+                    let diff = Math.abs(k.angle - hitAngle);
+                    diff = Math.min(diff, Math.PI * 2 - diff);
+                    if (diff < safeZone) { hitAnotherKnife = true; break; }
+                }
+                if (hitAnotherKnife) { triggerGameOver(); } 
+                else {
+                    target.stuckKnives.push({ angle: hitAngle });
+                    throwing = false;
+                    resetKnifePosition();
+                    if (knivesLeft === 0) { setTimeout(showLevelComplete, 300); }
+                }
+            }
+        }
+    }
+    
+    function showLevelComplete() {
+        gameState = 'levelComplete';
+        levelCompleteScreen.style.display = 'flex';
+    }
+
+    function proceedToNextLevel() {
+        triggerPopUnder();
+        level++;
+        levelCompleteScreen.style.display = 'none';
+        gameState = 'playing';
+        setupLevel();
+        update();
+    }
+
+    function triggerGameOver() {
+        gameState = 'gameOver';
+        finalLevelElement.textContent = level;
+        gameOverScreen.style.display = 'flex';
+    }
+    
+    function retryCurrentLevel() {
+        triggerPopUnder();
+        gameOverScreen.style.display = 'none';
+        gameState = 'playing';
+        setupLevel();
+        update();
+    }
+
+    function startFirstGame() {
+        level = 1;
+        startScreen.style.display = 'none';
+        gameState = 'playing';
+        setupLevel();
+        update();
+    }
+
+    // --- MAIN GAME LOOP ---
+    function update() {
+        if (gameState !== 'playing') return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        target.rotation += target.rotationSpeed;
+        if (throwing) {
+            knife.y -= knife.speed;
+            checkCollision();
+            if (knife.y < 0) { throwing = false; resetKnifePosition(); }
+        }
+        drawTarget(); 
+        if(knivesLeft > 0 || throwing) { drawThrowingKnife(); }
+        requestAnimationFrame(update);
+    }
+    
+    // --- EVENT LISTENERS ---
+    startButton.addEventListener('click', startFirstGame);
+    restartButton.addEventListener('click', retryCurrentLevel);
+    nextLevelButton.addEventListener('click', proceedToNextLevel);
+
+    function handleInput(e) {
+        if(e.type === 'touchstart') e.preventDefault();
+        if (gameState === 'playing') { throwKnife(); }
+    }
+    canvas.addEventListener('mousedown', handleInput);
+    canvas.addEventListener('touchstart', handleInput, {passive: false});
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && gameState === 'playing') { throwKnife(); }
+    });
+});
