@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const restartButton = document.getElementById('restart-button');
     const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
-    const topAdContainer = document.getElementById('ad-container-top');
-    const bottomAdContainer = document.getElementById('ad-container-bottom');
 
     // Canvas setup
     canvas.width = 400;
@@ -52,29 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         speed: 20 
     };
     
-    // --- ADVERTISEMENT LOGIC ---
-    function loadAds() {
-        topAdContainer.innerHTML = '';
-        bottomAdContainer.innerHTML = '';
-        const topAdConfig = document.createElement('script');
-        topAdConfig.type = 'text/javascript';
-        topAdConfig.text = `atOptions = {'key' : '8ee0ea4930ab98951f62e50eadf3788e','format' : 'iframe','height' : 250,'width' : 300,'params' : {}};`;
-        const topAdInvoke = document.createElement('script');
-        topAdInvoke.type = 'text/javascript';
-        topAdInvoke.src = '//www.highperformanceformat.com/8ee0ea4930ab98951f62e50eadf3788e/invoke.js';
-        topAdContainer.appendChild(topAdConfig);
-        topAdContainer.appendChild(topAdInvoke);
-        const bottomAdConfig = document.createElement('script');
-        bottomAdConfig.type = 'text/javascript';
-        bottomAdConfig.text = `atOptions = {'key' : 'e35460be4ebeb54d70231e9e3e3bf980','format' : 'iframe','height' : 90,'width' : 728,'params' : {}};`;
-        const bottomAdInvoke = document.createElement('script');
-        bottomAdInvoke.type = 'text/javascript';
-        bottomAdInvoke.src = '//www.highperformanceformat.com/e35460be4ebeb54d70231e9e3e3bf980/invoke.js';
-        bottomAdContainer.appendChild(bottomAdConfig);
-        bottomAdContainer.appendChild(bottomAdInvoke);
-    }
-    
-    // --- REVERTED: POP-UNDER SCRIPT INJECTION (Simple version) ---
+    // --- POP-UNDER SCRIPT INJECTION ---
     function triggerPopUnder() {
         const popUnderScript = document.createElement('script');
         popUnderScript.type = 'text/javascript';
@@ -177,33 +153,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function showLevelComplete() {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
-        loadAds();
     }
 
     function proceedToNextLevel() {
-        triggerPopUnder(); // <-- POP-UNDER TRIGGER
+        triggerPopUnder();
         level++;
         levelCompleteScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
         update();
-        loadAds();
     }
 
     function triggerGameOver() {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
-        loadAds();
     }
     
     function retryCurrentLevel() {
-        triggerPopUnder(); // <-- POP-UNDER TRIGGER
+        triggerPopUnder();
         gameOverScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
         update();
-        loadAds();
     }
 
     function startFirstGame() {
@@ -212,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
-        loadAds();
     }
 
     // --- MAIN GAME LOOP ---
@@ -249,6 +220,4 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.code === 'Space' && gameState === 'playing') { throwKnife(); }
     });
 
-    // --- INITIAL LOAD ---
-    loadAds();
 });
