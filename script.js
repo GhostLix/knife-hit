@@ -16,9 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = 400;
     canvas.height = 600;
 
-    // --- ASSETS REMOVED ---
-    // No more image loading needed.
-
     // --- GAME STATE ---
     let gameState = 'start'; 
     let level = 1;
@@ -37,9 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const knife = {
-        // These dimensions now define both the hitbox and the drawing shape.
-        width: 12, 
-        height: 80,
+        width: 14, 
+        height: 85,
         x: canvas.width / 2, 
         y: canvas.height - 150, // Position of the knife's TIP
         speed: 20 
@@ -47,60 +43,71 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- DRAWING FUNCTIONS ---
 
-    // --- NEW: Function to draw the knife shape ---
-    // The origin (0,0) for this drawing is the TIP of the knife.
+    // --- REWRITTEN & CORRECTED ---
+    // Draws a knife shape pointing UP (towards negative Y).
+    // The origin (0,0) of the drawing is the TIP of the blade.
     function drawKnifeShape() {
         const w = knife.width;
         const h = knife.height;
 
-        // Blade
-        ctx.fillStyle = '#D0D3D4'; // Light silver
-        ctx.beginPath();
-        ctx.moveTo(0, 0); // Tip
-        ctx.lineTo(-w / 2, -h * 0.5); // Top-left of blade
-        ctx.lineTo(w / 2, -h * 0.5); // Top-right of blade
-        ctx.closePath();
-        ctx.fill();
+        // Handle (drawn first)
+        ctx.fillStyle = '#8B4513'; // Brown
+        ctx.fillRect(-w / 2, -h, w, h * 0.5);
 
-        // Handle Guard
-        ctx.fillStyle = '#C0C0C0'; // Darker silver
+        // Guard
+        ctx.fillStyle = '#7F8C8D'; // Grey
         ctx.fillRect(-w, -h * 0.5, w * 2, h * 0.1);
 
-        // Handle
-        ctx.fillStyle = '#8B4513'; // Brown
-        ctx.fillRect(-w / 1.5, -h, w * 1.33, h * 0.5);
+        // Blade
+        ctx.fillStyle = '#ECF0F1'; // Silver
+        ctx.beginPath();
+        ctx.moveTo(0, 0); // Tip
+        ctx.lineTo(-w / 2, -h * 0.4);
+        ctx.lineTo(w / 2, -h * 0.4);
+        ctx.closePath();
+        ctx.fill();
     }
     
     function drawTarget() {
         ctx.save();
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
+        
         // Log
-        ctx.fillStyle = '#8B4513';
+        ctx.fillStyle = '#A0522D';
         ctx.beginPath();
         ctx.arc(0, 0, target.radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = '#5D4037';
-        ctx.lineWidth = 8;
+        ctx.strokeStyle = '#6B4226';
+        ctx.lineWidth = 10;
         ctx.stroke();
+        
+        // --- REWRITTEN & CORRECTED ---
         // Stuck knives
         target.stuckKnives.forEach(k => {
             ctx.save();
+            // 1. Rotate the context to the angle where the knife hit.
             ctx.rotate(k.angle);
-            // Translate to the edge of the log to draw the knife
-            ctx.translate(0, target.radius); // Move to the edge
-            ctx.rotate(Math.PI); // Flip the knife to point inwards
-            drawKnifeShape(); // Draw the shape instead of an image
+            
+            // 2. Translate to the edge of the log along the new Y-axis.
+            ctx.translate(0, target.radius);
+            
+            // 3. Draw the knife. Since drawKnifeShape() points UP (negative Y),
+            // it will now correctly point INWARDS towards the log's center.
+            drawKnifeShape();
+            
             ctx.restore();
         });
         ctx.restore();
     }
     
+    // --- REWRITTEN & CORRECTED ---
     function drawThrowingKnife() {
         ctx.save();
-        // Translate the canvas origin to the knife's tip position
+        // Move the canvas origin to the throwing knife's tip position
         ctx.translate(knife.x, knife.y);
-        drawKnifeShape(); // Draw the knife at the new origin
+        // Draw the knife shape, which points UP (negative Y), ready to be thrown.
+        drawKnifeShape();
         ctx.restore();
     }
     
@@ -146,9 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (knifeTipY <= target.y + target.radius) {
             const distance = Math.sqrt(Math.pow(knife.x - target.x, 2) + Math.pow(knifeTipY - target.y, 2));
             if (distance <= target.radius) {
+                // The angle calculation is correct and does not need to change.
                 const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
+                
                 let hitAnotherKnife = false;
-                const safeZone = 0.35;
+                const safeZone = 0.35; // Minimum angle between knives
                 for(let k of target.stuckKnives) {
                     let diff = Math.abs(k.angle - hitAngle);
                     diff = Math.min(diff, Math.PI * 2 - diff);
