@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const restartButton = document.getElementById('restart-button');
     const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
+    // --- NEW: Reference to the single ad overlay ---
+    const nativeAdOverlay = document.getElementById('native-ad-overlay');
 
     // Canvas setup
     canvas.width = 400;
@@ -41,17 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const knife = {
-        width: 25,  
-        height: 85, 
-        spriteWidth: 25 * 1.2,
-        spriteHeight: 85 * 1.2,
-        x: canvas.width / 2,
-        y: canvas.height - 150,
-        speed: 20 
+        width: 25, height: 85, 
+        spriteWidth: 25 * 1.2, spriteHeight: 85 * 1.2,
+        x: canvas.width / 2, y: canvas.height - 150, speed: 20 
     };
     
     // --- ADVERTISEMENT LOGIC ---
-
     function triggerPopUnder() {
         const popUnderScript = document.createElement('script');
         popUnderScript.type = 'text/javascript';
@@ -59,18 +56,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(popUnderScript);
     }
 
-    function loadNativeBanner(screenElement) {
-        const container = screenElement.querySelector('.native-ad-container');
-        if (!container) return;
-        container.innerHTML = '';
+    // --- REWRITTEN: Native Banner Logic ---
+    function showNativeBanner() {
+        nativeAdOverlay.innerHTML = ''; // Clear previous ad
+        nativeAdOverlay.style.display = 'flex'; // Make the container visible
+
         const adDiv = document.createElement('div');
         adDiv.id = 'container-4a286212fda5668b421eed9472b17e7b';
         const adScript = document.createElement('script');
         adScript.async = true;
         adScript.setAttribute('data-cfasync', 'false');
         adScript.src = '//preferablyending.com/4a286212fda5668b421eed9472b17e7b/invoke.js';
-        container.appendChild(adDiv);
-        container.appendChild(adScript);
+        
+        nativeAdOverlay.appendChild(adDiv);
+        nativeAdOverlay.appendChild(adScript);
+    }
+    
+    function hideNativeBanner() {
+        nativeAdOverlay.style.display = 'none';
+        nativeAdOverlay.innerHTML = '';
     }
 
     // --- DRAWING FUNCTIONS ---
@@ -88,9 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
-            if (imageLoaded) {
-                ctx.drawImage(knifeImage, -knife.spriteWidth / 2, -target.radius - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
-            }
+            if (imageLoaded) ctx.drawImage(knifeImage, -knife.spriteWidth / 2, -target.radius - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
             ctx.restore();
         });
         ctx.restore();
@@ -149,10 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let k of target.stuckKnives) {
                     let diff = Math.abs(k.angle - hitAngle);
                     diff = Math.min(diff, Math.PI * 2 - diff);
-                    if (diff < safeZone) {
-                        hitAnotherKnife = true;
-                        break;
-                    }
+                    if (diff < safeZone) { hitAnotherKnife = true; break; }
                 }
                 if (hitAnotherKnife) { triggerGameOver(); } 
                 else {
@@ -168,12 +167,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function showLevelComplete() {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
-        // --- KEY CHANGE: Added a small delay to ensure the screen is visible before loading the ad ---
-        setTimeout(() => loadNativeBanner(levelCompleteScreen), 50);
+        showNativeBanner(); // Show the ad overlay
     }
 
     function proceedToNextLevel() {
         triggerPopUnder();
+        hideNativeBanner(); // Hide the ad overlay
         level++;
         levelCompleteScreen.style.display = 'none';
         gameState = 'playing';
@@ -185,12 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
-        // --- KEY CHANGE: Added a small delay here as well ---
-        setTimeout(() => loadNativeBanner(gameOverScreen), 50);
+        showNativeBanner(); // Show the ad overlay
     }
     
     function retryCurrentLevel() {
         triggerPopUnder();
+        hideNativeBanner(); // Hide the ad overlay
         gameOverScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
@@ -198,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startFirstGame() {
+        hideNativeBanner(); // Ensure ad is hidden when game starts
         level = 1;
         startScreen.style.display = 'none';
         gameState = 'playing';
@@ -213,10 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (throwing) {
             knife.y -= knife.speed;
             checkCollision();
-            if (knife.y < 0) {
-                throwing = false;
-                resetKnifePosition();
-            }
+            if (knife.y < 0) { throwing = false; resetKnifePosition(); }
         }
         drawTarget(); 
         if(knivesLeft > 0 || throwing) { drawThrowingKnife(); }
@@ -232,13 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if(e.type === 'touchstart') e.preventDefault();
         if (gameState === 'playing') { throwKnife(); }
     }
-
     canvas.addEventListener('mousedown', handleInput);
     canvas.addEventListener('touchstart', handleInput, {passive: false});
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space' && gameState === 'playing') { throwKnife(); }
     });
-
-    // --- INITIAL LOAD ---
-    loadNativeBanner(startScreen);
 });
