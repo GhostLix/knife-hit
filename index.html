@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Knife Hit Replica</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- NEW POP-UNDER SCRIPT ADDED TO HEAD -->
     <script type='text/javascript' src='//preferablyending.com/f5/51/50/f551509e651b3f3b58c9691e07491ba3.js'></script>
-
 </head>
 <body>
     <div id="page-wrapper">
@@ -16,13 +13,7 @@
         <!-- Top Ad Banner (300x250) -->
         <div class="ad-wrapper">
             <script type="text/javascript">
-                atOptions = {
-                    'key' : '8ee0ea4930ab98951f62e50eadf3788e',
-                    'format' : 'iframe',
-                    'height' : 250,
-                    'width' : 300,
-                    'params' : {}
-                };
+                atOptions = { 'key' : '8ee0ea4930ab98951f62e50eadf3788e', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
             </script>
             <script type="text/javascript" src="//www.highperformanceformat.com/8ee0ea4930ab98951f62e50eadf3788e/invoke.js"></script>
         </div>
@@ -34,37 +25,38 @@
                 <div id="knife-counter"></div>
             </div>
             <canvas id="gameCanvas"></canvas>
+            
+            <!-- Screens -->
             <div id="start-screen" class="screen">
                 <h1>KNIFE HIT</h1>
                 <p>Hit the log with all knives.</p>
                 <p>Don't hit any other knives!</p>
                 <button id="start-button">Start Game</button>
+                <!-- Native Ad container for this screen -->
+                <div class="native-ad-container"></div>
             </div>
             <div id="level-complete-screen" class="screen" style="display: none;">
                 <h1>LEVEL COMPLETE!</h1>
                 <button id="next-level-button">Next Level</button>
+                <!-- Native Ad container for this screen -->
+                <div class="native-ad-container"></div>
             </div>
             <div id="gameover-screen" class="screen" style="display: none;">
                 <h1>GAME OVER</h1>
                 <p>Level reached: <span id="final-level">1</span></p>
                 <button id="restart-button">Retry Level</button>
+                <!-- Native Ad container for this screen -->
+                <div class="native-ad-container"></div>
             </div>
         </div>
 
         <!-- Bottom Ad Banner (728x90) -->
         <div class="ad-wrapper">
             <script type="text/javascript">
-                atOptions = {
-                    'key' : 'e35460be4ebeb54d70231e9e3e3bf980',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {}
-                };
+                atOptions = { 'key' : 'e35460be4ebeb54d70231e9e3e3bf980', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
             </script>
             <script type="text/javascript" src="//www.highperformanceformat.com/e35460be4ebeb54d70231e9e3e3bf980/invoke.js"></script>
         </div>
-
     </div>
     
     <script src="script.js"></script>
