@@ -7,21 +7,21 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Main wrapper for layout -->
     <div id="page-wrapper">
 
         <!-- Top Ad Banner Container -->
-        <div id="ad-container-top" class="ad-container"></div>
+        <div id="ad-container-top" class="ad-container">
+            <!-- This text will be replaced by the ad script -->
+            Loading Top Ad...
+        </div>
 
         <!-- The original Game Container -->
         <div id="game-container">
-            <!-- In-game UI -->
             <div id="ui-container">
                 <div id="score">Level: 1</div>
                 <div id="knife-counter"></div>
             </div>
             
-            <!-- The Game Canvas -->
             <canvas id="gameCanvas"></canvas>
             
             <!-- Screens -->
@@ -43,11 +43,13 @@
         </div>
 
         <!-- Bottom Ad Banner Container -->
-        <div id="ad-container-bottom" class="ad-container"></div>
+        <div id="ad-container-bottom" class="ad-container">
+            <!-- This text will be replaced by the ad script -->
+            Loading Bottom Ad...
+        </div>
 
     </div>
     
-    <!-- JavaScript file remains at the end -->
     <script src="script.js"></script>
 </body>
 </html>
