@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         x: canvas.width / 2, y: canvas.height - 150, speed: 20 
     };
     
-    // NOTE: All ad logic has been removed from this file as ads are now static in index.html
+    // All ad-related functions have been removed from the script.
 
     // --- DRAWING FUNCTIONS ---
     function drawTarget() {
@@ -147,6 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setupLevel();
         update();
     }
+
+
 
     function triggerGameOver() {
         gameState = 'gameOver';
