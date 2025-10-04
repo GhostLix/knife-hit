@@ -74,21 +74,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LOGICA DI GIOCO (Corretta) ---
     function setupLevel() {
-        target.stuckKnives = [];
+        target.stuckKnives = []; // Ceppo sempre pulito
         target.rotation = 0;
-        throwing = false; // Assicura che lo stato di lancio sia resettato
+        throwing = false;
         knife.y = canvas.height - 150;
 
+        // Aumenta velocità con il livello
         const baseSpeed = 0.015 + level * 0.005;
         target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
+        
+        // Aumenta numero di coltelli con il livello
         knivesLeft = 5 + Math.floor(level / 2);
 
-        const initialKnives = Math.min(Math.floor(level * 0.8), 5);
-        for(let i = 0; i < initialKnives; i++) {
-            target.stuckKnives.push({
-                angle: (Math.PI * 2 / initialKnives) * i + (Math.random() - 0.5) * 0.3
-            });
-        }
+        // --- RIMOSSA LA LOGICA DEI COLTELLI INIZIALI ---
         
         scoreElement.textContent = `Level: ${level}`;
         updateKnifeCounter();
@@ -104,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- GESTIONE STATI DI GIOCO ---
     function triggerGameOver() {
-        // BUG FIX: Resetta sempre lo stato di lancio al game over
         throwing = false; 
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
@@ -135,24 +132,21 @@ document.addEventListener('DOMContentLoaded', () => {
         startScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
-        gameLoop(); // Inizia il loop di gioco
+        gameLoop();
     }
 
-    // --- GAME LOOP (Robusto) ---
+    // --- GAME LOOP ---
     function gameLoop() {
         if (gameState === 'playing') {
-            // Aggiorna la logica solo se si sta giocando
             target.rotation += target.rotationSpeed;
             
             if (throwing) {
                 knife.y -= knife.speed;
                 
-                // Controlla se il coltello esce dallo schermo (mancato)
                 if (knife.y < -knife.height) {
                     triggerGameOver();
                 }
 
-                // Controlla la collisione con il ceppo
                 const knifeTipY = knife.y - knife.height;
                 const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
 
@@ -170,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (collision) {
                         triggerGameOver();
                     } else {
-                        // Colpo a segno
                         throwing = false;
                         target.stuckKnives.push({ angle: hitAngle });
                         knife.y = canvas.height - 150;
@@ -182,10 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Disegna sempre, indipendentemente dallo stato
         draw();
         
-        // Continua il ciclo
         requestAnimationFrame(gameLoop);
     }
 
