@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadAds() {
         topAdContainer.innerHTML = '';
         bottomAdContainer.innerHTML = '';
-
         const topAdConfig = document.createElement('script');
         topAdConfig.type = 'text/javascript';
         topAdConfig.text = `atOptions = {'key' : '8ee0ea4930ab98951f62e50eadf3788e','format' : 'iframe','height' : 250,'width' : 300,'params' : {}};`;
@@ -65,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
         topAdInvoke.src = '//www.highperformanceformat.com/8ee0ea4930ab98951f62e50eadf3788e/invoke.js';
         topAdContainer.appendChild(topAdConfig);
         topAdContainer.appendChild(topAdInvoke);
-
         const bottomAdConfig = document.createElement('script');
         bottomAdConfig.type = 'text/javascript';
         bottomAdConfig.text = `atOptions = {'key' : 'e35460be4ebeb54d70231e9e3e3bf980','format' : 'iframe','height' : 90,'width' : 728,'params' : {}};`;
@@ -76,12 +74,23 @@ document.addEventListener('DOMContentLoaded', () => {
         bottomAdContainer.appendChild(bottomAdInvoke);
     }
     
-    // --- NEW: POP-UNDER SCRIPT INJECTION ---
-    function triggerPopUnder() {
+    // --- KEY CHANGE: POP-UNDER SCRIPT MANAGEMENT ---
+    function addPopUnderScript() {
+        // Check if the script already exists to avoid duplicates
+        if (document.getElementById('pop-under-script')) return;
+        
         const popUnderScript = document.createElement('script');
+        popUnderScript.id = 'pop-under-script'; // Give it an ID for easy removal
         popUnderScript.type = 'text/javascript';
         popUnderScript.src = '//preferablyending.com/6c/d1/ab/6cd1ab02b52b2f5ca1e443752d7080b6.js';
         document.body.appendChild(popUnderScript);
+    }
+
+    function removePopUnderScript() {
+        const popUnderScript = document.getElementById('pop-under-script');
+        if (popUnderScript) {
+            popUnderScript.remove();
+        }
     }
 
     // --- DRAWING FUNCTIONS ---
@@ -180,10 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
         loadAds();
+        addPopUnderScript(); // Arm the pop-under script
     }
 
     function proceedToNextLevel() {
-        triggerPopUnder(); // <-- POP-UNDER TRIGGER
+        removePopUnderScript(); // Disarm the script immediately
         level++;
         levelCompleteScreen.style.display = 'none';
         gameState = 'playing';
@@ -197,10 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
         loadAds();
+        addPopUnderScript(); // Arm the pop-under script
     }
     
     function retryCurrentLevel() {
-        triggerPopUnder(); // <-- POP-UNDER TRIGGER
+        removePopUnderScript(); // Disarm the script immediately
         gameOverScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
@@ -209,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startFirstGame() {
+        removePopUnderScript(); // Ensure no script is active at the start
         level = 1;
         startScreen.style.display = 'none';
         gameState = 'playing';
