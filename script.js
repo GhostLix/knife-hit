@@ -25,13 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- OGGETTI DI GIOCO ---
     const target = {
         x: canvas.width / 2, y: 180, radius: 80,
-        rotation: 0, 
-        rotationSpeed: 0, // Velocità corrente, può cambiare
-        baseRotationSpeed: 0, // Velocità di base per il livello
-        // --- NUOVE PROPRIETÀ PER LA VELOCITÀ IRREGOLARE ---
-        wobbleAngle: 0,
-        wobbleSpeed: 0,
-        wobbleAmplitude: 0,
+        rotation: 0, rotationSpeed: 0, baseRotationSpeed: 0,
+        wobbleAngle: 0, wobbleSpeed: 0, wobbleAmplitude: 0,
         stuckKnives: []
     };
 
@@ -68,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.restore();
         });
         ctx.restore();
-        if (gameState === 'playing' && knivesLeft > 0) {
+        if (gameState === 'playing' && (knivesLeft > 0 || throwing)) {
             drawKnifeShape(knife.x, knife.y, knife.width, knife.height);
         }
     }
@@ -77,23 +72,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
-        throwing = false;
+        throwing = false; // <<< Correzione cruciale: resetta sempre lo stato di lancio
         knife.y = canvas.height - 150;
 
-        // --- KEY CHANGE: Logica della velocità ---
-        // 1. La velocità di base si ferma al livello 10
         const speedLevel = Math.min(level, 10);
         const baseSpeed = 0.015 + speedLevel * 0.005;
         target.baseRotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
         
-        // 2. Dopo il livello 10, si attiva la velocità irregolare
         if (level > 10) {
             target.wobbleAngle = 0;
-            target.wobbleSpeed = 0.01 + (level - 10) * 0.002; // L'irregolarità diventa più veloce
-            // L'ampiezza dell'irregolarità aumenta, ma non può superare la velocità di base
+            target.wobbleSpeed = 0.01 + (level - 10) * 0.002;
             target.wobbleAmplitude = Math.min(target.baseRotationSpeed * (0.5 + (level - 10) * 0.05), target.baseRotationSpeed * 0.9);
         } else {
-            // Per i livelli 1-10, la velocità è costante
             target.rotationSpeed = target.baseRotationSpeed;
             target.wobbleAmplitude = 0;
         }
@@ -112,17 +102,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- GESTIONE STATI DI GIOCO ---
+    // --- GESTIONE STATI DI GIOCO (ROBUSTA) ---
     function triggerGameOver() {
-        throwing = false; 
+        if (gameState === 'gameOver') return; // Previene chiamate multiple
         gameState = 'gameOver';
+        throwing = false; // <<< Correzione cruciale
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
     }
     
     function triggerLevelComplete() {
-        throwing = false;
+        if (gameState === 'levelComplete') return;
         gameState = 'levelComplete';
+        throwing = false; // <<< Correzione cruciale
         setTimeout(() => levelCompleteScreen.style.display = 'flex', 800);
     }
     
@@ -147,52 +139,60 @@ document.addEventListener('DOMContentLoaded', () => {
         gameLoop();
     }
 
-    // --- GAME LOOP ---
+    // --- GAME LOOP (RISCRITTO PER STABILITÀ) ---
     function gameLoop() {
+        // 1. Aggiorna lo stato del gioco (solo se in 'playing')
         if (gameState === 'playing') {
-            // --- KEY CHANGE: Calcolo della velocità ad ogni frame ---
+            // Aggiorna la velocità se irregolare
             if (level > 10) {
                 target.wobbleAngle += target.wobbleSpeed;
                 const wobbleEffect = Math.sin(target.wobbleAngle) * target.wobbleAmplitude;
                 target.rotationSpeed = target.baseRotationSpeed + wobbleEffect;
             }
-            
             target.rotation += target.rotationSpeed;
             
+            // Logica del lancio
             if (throwing) {
                 knife.y -= knife.speed;
                 
-                if (knife.y < -knife.height) triggerGameOver();
-
-                const knifeTipY = knife.y - knife.height;
-                const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
-
-                if (distance < target.radius) {
-                    const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
-                    let collision = false;
-                    const minAngleDiff = 0.35;
-                    target.stuckKnives.forEach(k => {
-                        let diff = Math.abs(k.angle - hitAngle);
-                        if (Math.min(diff, Math.PI * 2 - diff) < minAngleDiff) {
-                            collision = true;
+                // Mancato (fuori schermo)
+                if (knife.y < -knife.height) {
+                    triggerGameOver();
+                } else {
+                    // Controlla collisione con ceppo
+                    const knifeTipY = knife.y - knife.height;
+                    const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
+                    if (distance < target.radius) {
+                        const hitAngle = Math.atan2(knifeTipY - target.y, knife.x - target.x) - target.rotation + Math.PI / 2;
+                        let collision = false;
+                        const minAngleDiff = 0.35;
+                        for (const k of target.stuckKnives) {
+                            let diff = Math.abs(k.angle - hitAngle);
+                            if (Math.min(diff, Math.PI * 2 - diff) < minAngleDiff) {
+                                collision = true;
+                                break;
+                            }
                         }
-                    });
 
-                    if (collision) {
-                        triggerGameOver();
-                    } else {
-                        throwing = false;
-                        target.stuckKnives.push({ angle: hitAngle });
-                        knife.y = canvas.height - 150;
-                        if (knivesLeft === 0) {
-                            triggerLevelComplete();
+                        if (collision) {
+                            triggerGameOver();
+                        } else {
+                            throwing = false;
+                            target.stuckKnives.push({ angle: hitAngle });
+                            knife.y = canvas.height - 150;
+                            if (knivesLeft === 0) {
+                                triggerLevelComplete();
+                            }
                         }
                     }
                 }
             }
         }
         
+        // 2. Disegna sempre lo stato corrente
         draw();
+        
+        // 3. Continua il ciclo
         requestAnimationFrame(gameLoop);
     }
 
