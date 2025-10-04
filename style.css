@@ -47,17 +47,11 @@ canvas {
 }
 #knife-counter {
     display: flex;
-    flex-direction: row-reverse;
     gap: 5px;
 }
 #knife-counter span {
     font-size: 1.5em;
-    color: #ecf0f1;
-    opacity: 1;
-    transition: opacity 0.3s;
-}
-#knife-counter span.used {
-    opacity: 0.3;
+    color: #bdc3c7;
 }
 .screen {
     position: absolute;
