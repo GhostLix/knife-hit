@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const restartButton = document.getElementById('restart-button');
     const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
-    // --- NEW: Reference to the single ad overlay ---
-    const nativeAdOverlay = document.getElementById('native-ad-overlay');
 
     // Canvas setup
     canvas.width = 400;
@@ -48,34 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         x: canvas.width / 2, y: canvas.height - 150, speed: 20 
     };
     
-    // --- ADVERTISEMENT LOGIC ---
-    function triggerPopUnder() {
-        const popUnderScript = document.createElement('script');
-        popUnderScript.type = 'text/javascript';
-        popUnderScript.src = '//preferablyending.com/6c/d1/ab/6cd1ab02b52b2f5ca1e443752d7080b6.js';
-        document.body.appendChild(popUnderScript);
-    }
-
-    // --- REWRITTEN: Native Banner Logic ---
-    function showNativeBanner() {
-        nativeAdOverlay.innerHTML = ''; // Clear previous ad
-        nativeAdOverlay.style.display = 'flex'; // Make the container visible
-
-        const adDiv = document.createElement('div');
-        adDiv.id = 'container-4a286212fda5668b421eed9472b17e7b';
-        const adScript = document.createElement('script');
-        adScript.async = true;
-        adScript.setAttribute('data-cfasync', 'false');
-        adScript.src = '//preferablyending.com/4a286212fda5668b421eed9472b17e7b/invoke.js';
-        
-        nativeAdOverlay.appendChild(adDiv);
-        nativeAdOverlay.appendChild(adScript);
-    }
-    
-    function hideNativeBanner() {
-        nativeAdOverlay.style.display = 'none';
-        nativeAdOverlay.innerHTML = '';
-    }
+    // NOTE: All ad logic has been removed from this file as ads are now static in index.html
 
     // --- DRAWING FUNCTIONS ---
     function drawTarget() {
@@ -167,12 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function showLevelComplete() {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
-        showNativeBanner(); // Show the ad overlay
     }
 
     function proceedToNextLevel() {
-        triggerPopUnder();
-        hideNativeBanner(); // Hide the ad overlay
         level++;
         levelCompleteScreen.style.display = 'none';
         gameState = 'playing';
@@ -184,12 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
-        showNativeBanner(); // Show the ad overlay
     }
     
     function retryCurrentLevel() {
-        triggerPopUnder();
-        hideNativeBanner(); // Hide the ad overlay
         gameOverScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
@@ -197,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startFirstGame() {
-        hideNativeBanner(); // Ensure ad is hidden when game starts
         level = 1;
         startScreen.style.display = 'none';
         gameState = 'playing';
