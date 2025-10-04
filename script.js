@@ -55,8 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ADVERTISEMENT LOGIC ---
     function loadAds() {
         // This function clears the ad containers and injects the ad scripts again.
-        // This forces the ad network to provide a new ad.
-        // Thanks to the CSS, if an ad doesn't load, you'll see an empty grey box.
+        // This forces the ad network to try to provide a new ad.
         
         topAdContainer.innerHTML = '';
         bottomAdContainer.innerHTML = '';
@@ -267,4 +266,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIAL LOAD ---
     loadAds();
-});```
+});
