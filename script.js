@@ -25,7 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- OGGETTI DI GIOCO ---
     const target = {
         x: canvas.width / 2, y: 180, radius: 80,
-        rotation: 0, rotationSpeed: 0, stuckKnives: []
+        rotation: 0, 
+        rotationSpeed: 0, // Velocità corrente, può cambiare
+        baseRotationSpeed: 0, // Velocità di base per il livello
+        // --- NUOVE PROPRIETÀ PER LA VELOCITÀ IRREGOLARE ---
+        wobbleAngle: 0,
+        wobbleSpeed: 0,
+        wobbleAmplitude: 0,
+        stuckKnives: []
     };
 
     const knife = {
@@ -36,15 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FUNZIONI DI DISEGNO ---
     function drawKnifeShape(x, y, w, h) {
-        ctx.fillStyle = '#bdc3c7'; // Lama
+        ctx.fillStyle = '#bdc3c7';
         ctx.fillRect(x - w / 2, y - h, w, h * 0.7);
-        ctx.fillStyle = '#A0522D'; // Manico
+        ctx.fillStyle = '#A0522D';
         ctx.fillRect(x - w / 2, y - h * 0.3, w, h * 0.3);
     }
     
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
         ctx.save();
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
@@ -55,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.strokeStyle = '#654321';
         ctx.lineWidth = 10;
         ctx.stroke();
-
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
@@ -63,23 +68,36 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.restore();
         });
         ctx.restore();
-        
         if (gameState === 'playing' && knivesLeft > 0) {
             drawKnifeShape(knife.x, knife.y, knife.width, knife.height);
         }
     }
 
-    // --- LOGICA DI GIOCO (Corretta) ---
+    // --- LOGICA DI GIOCO ---
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
         throwing = false;
         knife.y = canvas.height - 150;
 
-        const baseSpeed = 0.015 + level * 0.005;
-        target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
+        // --- KEY CHANGE: Logica della velocità ---
+        // 1. La velocità di base si ferma al livello 10
+        const speedLevel = Math.min(level, 10);
+        const baseSpeed = 0.015 + speedLevel * 0.005;
+        target.baseRotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
         
-        // --- KEY CHANGE: Limita il numero massimo di coltelli a 9 ---
+        // 2. Dopo il livello 10, si attiva la velocità irregolare
+        if (level > 10) {
+            target.wobbleAngle = 0;
+            target.wobbleSpeed = 0.01 + (level - 10) * 0.002; // L'irregolarità diventa più veloce
+            // L'ampiezza dell'irregolarità aumenta, ma non può superare la velocità di base
+            target.wobbleAmplitude = Math.min(target.baseRotationSpeed * (0.5 + (level - 10) * 0.05), target.baseRotationSpeed * 0.9);
+        } else {
+            // Per i livelli 1-10, la velocità è costante
+            target.rotationSpeed = target.baseRotationSpeed;
+            target.wobbleAmplitude = 0;
+        }
+
         knivesLeft = Math.min(5 + Math.floor(level / 2), 9);
         
         scoreElement.textContent = `Level: ${level}`;
@@ -132,14 +150,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- GAME LOOP ---
     function gameLoop() {
         if (gameState === 'playing') {
+            // --- KEY CHANGE: Calcolo della velocità ad ogni frame ---
+            if (level > 10) {
+                target.wobbleAngle += target.wobbleSpeed;
+                const wobbleEffect = Math.sin(target.wobbleAngle) * target.wobbleAmplitude;
+                target.rotationSpeed = target.baseRotationSpeed + wobbleEffect;
+            }
+            
             target.rotation += target.rotationSpeed;
             
             if (throwing) {
                 knife.y -= knife.speed;
                 
-                if (knife.y < -knife.height) {
-                    triggerGameOver();
-                }
+                if (knife.y < -knife.height) triggerGameOver();
 
                 const knifeTipY = knife.y - knife.height;
                 const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
@@ -170,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         draw();
-        
         requestAnimationFrame(gameLoop);
     }
 
