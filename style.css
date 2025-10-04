@@ -40,15 +40,21 @@ canvas {
     right: 20px;
     display: flex;
     justify-content: space-between;
+    align-items: flex-start; /* Allinea gli elementi in alto */
     font-size: 1.5em;
     font-weight: bold;
     pointer-events: none;
     z-index: 10;
 }
+
 #knife-counter {
     display: flex;
-    gap: 5px;
+    gap: 8px; /* Aumenta un po' lo spazio */
+    justify-content: flex-end; /* Allinea a destra */
+    flex-wrap: wrap; /* --- KEY CHANGE: Permette di andare a capo --- */
+    max-width: 60%; /* Limita la larghezza per forzare l'a capo */
 }
+
 #knife-counter span {
     font-size: 1.5em;
     color: #bdc3c7;
