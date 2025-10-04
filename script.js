@@ -25,8 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- OGGETTI DI GIOCO ---
     const target = {
         x: canvas.width / 2, y: 180, radius: 80,
-        rotation: 0, rotationSpeed: 0, baseRotationSpeed: 0,
-        wobbleAngle: 0, wobbleSpeed: 0, wobbleAmplitude: 0,
+        rotation: 0, rotationSpeed: 0,
         stuckKnives: []
     };
 
@@ -75,23 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
         throwing = false;
         knife.y = canvas.height - 150;
 
-        // --- KEY CHANGE: La difficoltà si ferma al livello 9 ---
+        // --- KEY CHANGE: La difficoltà si ferma completamente al livello 9 ---
         const difficultyLevel = Math.min(level, 9);
 
         const baseSpeed = 0.015 + difficultyLevel * 0.005;
-        target.baseRotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
+        target.rotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
         
-        // La velocità irregolare inizia dal livello 10 (cioè, dopo il cap di difficoltà)
-        if (level > 9) {
-            target.wobbleAngle = 0;
-            target.wobbleSpeed = 0.01 + (level - 9) * 0.002;
-            target.wobbleAmplitude = Math.min(target.baseRotationSpeed * 0.8, target.baseRotationSpeed * 0.9);
-        } else {
-            target.rotationSpeed = target.baseRotationSpeed;
-            target.wobbleAmplitude = 0;
-        }
+        // --- RIMOSSA LA LOGICA DELLA VELOCITÀ IRREGOLARE ---
 
-        // Anche il numero di coltelli si ferma al valore del livello 9
         knivesLeft = Math.min(5 + Math.floor(difficultyLevel / 2), 9);
         
         scoreElement.textContent = `Level: ${level}`;
@@ -140,11 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- GAME LOOP ---
     function gameLoop() {
         if (gameState === 'playing') {
-            if (level > 9) {
-                target.wobbleAngle += target.wobbleSpeed;
-                const wobbleEffect = Math.sin(target.wobbleAngle) * target.wobbleAmplitude;
-                target.rotationSpeed = target.baseRotationSpeed + wobbleEffect;
-            }
             target.rotation += target.rotationSpeed;
             
             if (throwing) {
@@ -179,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateKnifeCounter() {
         knifeCounterElement.innerHTML = '';
-        // --- KEY CHANGE: Usa lo stesso cap di difficoltà per calcolare il totale ---
         const difficultyLevel = Math.min(level, 9);
         const totalKnives = Math.min(5 + Math.floor(difficultyLevel / 2), 9);
         for (let i = 0; i < totalKnives; i++) {
