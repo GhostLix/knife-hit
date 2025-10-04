@@ -46,6 +46,21 @@ canvas {
     pointer-events: none;
     z-index: 10;
 }
+
+/* --- NUOVI STILI --- */
+#stats-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+#balance-display {
+    font-size: 0.7em; /* Più piccolo del livello */
+    margin-top: 5px;
+    color: #2ecc71; /* Verde per rappresentare i soldi */
+    font-weight: normal;
+}
+/* --- FINE NUOVI STILI --- */
+
 #knife-counter {
     display: flex;
     gap: 8px;
@@ -110,11 +125,9 @@ canvas {
 #next-level-button:hover {
     background-color: #27ae60;
 }
-
-/* --- NUOVO STILE PER IL TESTO DI ISTRUZIONE --- */
 #instruction-text {
     margin-top: 20px;
     font-size: 14px;
-    color: #7f8c8d; /* Grigio scuro per essere visibile ma non invadente */
+    color: #7f8c8d;
     text-align: center;
 }
