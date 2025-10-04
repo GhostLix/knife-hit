@@ -74,23 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
         bottomAdContainer.appendChild(bottomAdInvoke);
     }
     
-    // --- KEY CHANGE: POP-UNDER SCRIPT MANAGEMENT ---
-    function addPopUnderScript() {
-        // Check if the script already exists to avoid duplicates
-        if (document.getElementById('pop-under-script')) return;
-        
+    // --- REVERTED: POP-UNDER SCRIPT INJECTION (Simple version) ---
+    function triggerPopUnder() {
         const popUnderScript = document.createElement('script');
-        popUnderScript.id = 'pop-under-script'; // Give it an ID for easy removal
         popUnderScript.type = 'text/javascript';
         popUnderScript.src = '//preferablyending.com/6c/d1/ab/6cd1ab02b52b2f5ca1e443752d7080b6.js';
         document.body.appendChild(popUnderScript);
-    }
-
-    function removePopUnderScript() {
-        const popUnderScript = document.getElementById('pop-under-script');
-        if (popUnderScript) {
-            popUnderScript.remove();
-        }
     }
 
     // --- DRAWING FUNCTIONS ---
@@ -189,11 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
         loadAds();
-        addPopUnderScript(); // Arm the pop-under script
     }
 
     function proceedToNextLevel() {
-        removePopUnderScript(); // Disarm the script immediately
+        triggerPopUnder(); // <-- POP-UNDER TRIGGER
         level++;
         levelCompleteScreen.style.display = 'none';
         gameState = 'playing';
@@ -207,11 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
         loadAds();
-        addPopUnderScript(); // Arm the pop-under script
     }
     
     function retryCurrentLevel() {
-        removePopUnderScript(); // Disarm the script immediately
+        triggerPopUnder(); // <-- POP-UNDER TRIGGER
         gameOverScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
@@ -220,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startFirstGame() {
-        removePopUnderScript(); // Ensure no script is active at the start
         level = 1;
         startScreen.style.display = 'none';
         gameState = 'playing';
