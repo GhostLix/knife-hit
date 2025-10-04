@@ -8,42 +8,23 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    overflow-y: auto; /* Allow scrolling if content is too tall */
+    overflow-y: auto;
 }
-
 #page-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 800px; /* Set a max width for better layout on wide screens */
+    max-width: 800px;
     padding: 10px 0;
     box-sizing: border-box;
 }
 
-/* This style makes the ad slot visible even if the ad network doesn't fill it */
-.ad-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px dashed #4a6582;
-    box-sizing: border-box;
-    color: #56789c;
-    font-size: 0.9em;
-}
-
-#ad-container-top {
-    width: 300px;
-    height: 250px;
-    margin-bottom: 15px;
-}
-
-#ad-container-bottom {
-    width: 728px;
-    height: 90px;
-    margin-top: 15px;
+/* New simple wrapper to center ads and give them space */
+.ad-wrapper {
+    text-align: center;
+    margin: 15px 0;
 }
 
 #game-container {
@@ -54,13 +35,11 @@ body {
     justify-content: center;
     align-items: center;
 }
-
 canvas {
     background-color: #34495e;
     border-radius: 10px;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
-
 #ui-container {
     position: absolute;
     top: 20px;
@@ -73,18 +52,14 @@ canvas {
     pointer-events: none;
     z-index: 10;
 }
-
 #knife-counter {
     display: flex;
     gap: 5px;
 }
-
 #knife-counter span {
     font-size: 1.5em;
     color: #bdc3c7;
 }
-
-/* Screen Overlays */
 .screen {
     position: absolute;
     top: 0;
@@ -100,22 +75,18 @@ canvas {
     border-radius: 10px;
     z-index: 20;
 }
-
 .screen h1 {
     font-size: 3em;
     margin: 0 0 20px 0;
     color: #e74c3c;
 }
-
 #level-complete-screen h1 {
     color: #2ecc71;
 }
-
 .screen p {
     font-size: 1.2em;
     margin: 10px 0 30px 0;
 }
-
 .screen button {
     padding: 15px 30px;
     font-size: 1.2em;
@@ -126,19 +97,16 @@ canvas {
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
 }
-
 .screen button:hover {
     background-color: #2980b9;
     transform: scale(1.05);
 }
-
 #restart-button {
     background-color: #e74c3c;
 }
 #restart-button:hover {
     background-color: #c0392b;
 }
-
 #next-level-button {
     background-color: #2ecc71;
 }
