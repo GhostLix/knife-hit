@@ -10,7 +10,12 @@
     <div id="page-wrapper">
         <div id="game-container">
             <div id="ui-container">
-                <div id="score">Level: 1</div>
+                <!-- Contenitore per la parte sinistra della UI -->
+                <div id="stats-container">
+                    <div id="score">Level: 1</div>
+                    <!-- NUOVO ELEMENTO PER IL SALDO -->
+                    <div id="balance-display">Balance: $0.00</div>
+                </div>
                 <div id="knife-counter"></div>
             </div>
             <canvas id="gameCanvas"></canvas>
@@ -30,7 +35,6 @@
                 <button id="restart-button">Retry Level</button>
             </div>
         </div>
-        <!-- NUOVO TESTO DI ISTRUZIONE -->
         <p id="instruction-text">All knives must be thrown in a single rotation</p>
     </div>
     <script src="script.js"></script>
