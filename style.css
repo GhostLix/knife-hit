@@ -40,21 +40,19 @@ canvas {
     right: 20px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* Allinea gli elementi in alto */
+    align-items: flex-start;
     font-size: 1.5em;
     font-weight: bold;
     pointer-events: none;
     z-index: 10;
 }
-
 #knife-counter {
     display: flex;
-    gap: 8px; /* Aumenta un po' lo spazio */
-    justify-content: flex-end; /* Allinea a destra */
-    flex-wrap: wrap; /* --- KEY CHANGE: Permette di andare a capo --- */
-    max-width: 60%; /* Limita la larghezza per forzare l'a capo */
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    max-width: 60%;
 }
-
 #knife-counter span {
     font-size: 1.5em;
     color: #bdc3c7;
@@ -111,4 +109,12 @@ canvas {
 }
 #next-level-button:hover {
     background-color: #27ae60;
+}
+
+/* --- NUOVO STILE PER IL TESTO DI ISTRUZIONE --- */
+#instruction-text {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #7f8c8d; /* Grigio scuro per essere visibile ma non invadente */
+    text-align: center;
 }
