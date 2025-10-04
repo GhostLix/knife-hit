@@ -17,7 +17,7 @@ body {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 800px;
+    max-width: 800px; /* Set a max width for better layout on wide screens */
     padding: 10px 0;
     box-sizing: border-box;
 }
