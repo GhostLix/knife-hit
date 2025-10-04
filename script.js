@@ -54,49 +54,34 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- ADVERTISEMENT LOGIC ---
     function loadAds() {
-        // This function clears the ad containers and injects the ad scripts again.
-        // This forces the ad network to try to provide a new ad.
-        
         topAdContainer.innerHTML = '';
         bottomAdContainer.innerHTML = '';
 
-        // --- Top Banner (300x250) ---
         const topAdConfig = document.createElement('script');
         topAdConfig.type = 'text/javascript';
-        topAdConfig.text = `
-            atOptions = {
-                'key' : '8ee0ea4930ab98951f62e50eadf3788e',
-                'format' : 'iframe',
-                'height' : 250,
-                'width' : 300,
-                'params' : {}
-            };
-        `;
+        topAdConfig.text = `atOptions = {'key' : '8ee0ea4930ab98951f62e50eadf3788e','format' : 'iframe','height' : 250,'width' : 300,'params' : {}};`;
         const topAdInvoke = document.createElement('script');
         topAdInvoke.type = 'text/javascript';
         topAdInvoke.src = '//www.highperformanceformat.com/8ee0ea4930ab98951f62e50eadf3788e/invoke.js';
-        
         topAdContainer.appendChild(topAdConfig);
         topAdContainer.appendChild(topAdInvoke);
 
-        // --- Bottom Banner (728x90) ---
         const bottomAdConfig = document.createElement('script');
         bottomAdConfig.type = 'text/javascript';
-        bottomAdConfig.text = `
-            atOptions = {
-                'key' : 'e35460be4ebeb54d70231e9e3e3bf980',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-            };
-        `;
+        bottomAdConfig.text = `atOptions = {'key' : 'e35460be4ebeb54d70231e9e3e3bf980','format' : 'iframe','height' : 90,'width' : 728,'params' : {}};`;
         const bottomAdInvoke = document.createElement('script');
         bottomAdInvoke.type = 'text/javascript';
         bottomAdInvoke.src = '//www.highperformanceformat.com/e35460be4ebeb54d70231e9e3e3bf980/invoke.js';
-
         bottomAdContainer.appendChild(bottomAdConfig);
         bottomAdContainer.appendChild(bottomAdInvoke);
+    }
+    
+    // --- NEW: POP-UNDER SCRIPT INJECTION ---
+    function triggerPopUnder() {
+        const popUnderScript = document.createElement('script');
+        popUnderScript.type = 'text/javascript';
+        popUnderScript.src = '//preferablyending.com/6c/d1/ab/6cd1ab02b52b2f5ca1e443752d7080b6.js';
+        document.body.appendChild(popUnderScript);
     }
 
     // --- DRAWING FUNCTIONS ---
@@ -198,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function proceedToNextLevel() {
+        triggerPopUnder(); // <-- POP-UNDER TRIGGER
         level++;
         levelCompleteScreen.style.display = 'none';
         gameState = 'playing';
@@ -214,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function retryCurrentLevel() {
+        triggerPopUnder(); // <-- POP-UNDER TRIGGER
         gameOverScreen.style.display = 'none';
         gameState = 'playing';
         setupLevel();
