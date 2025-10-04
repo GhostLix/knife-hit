@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const restartButton = document.getElementById('restart-button');
     const nextLevelButton = document.getElementById('next-level-button');
     const finalLevelElement = document.getElementById('final-level');
+    // --- NEW: Ad Containers ---
+    const topAdContainer = document.getElementById('ad-container-top');
+    const bottomAdContainer = document.getElementById('ad-container-bottom');
 
     // Canvas setup
     canvas.width = 400;
@@ -41,19 +44,60 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const knife = {
-        // HITBOX dimensions: These are used for collision detection. They remain unchanged.
         width: 25,  
         height: 85, 
-        
-        // --- KEY CHANGE: SPRITE dimensions for drawing, 20% larger ---
-        spriteWidth: 25 * 1.2,  // 30
-        spriteHeight: 85 * 1.2, // 102
-        
-        // The (x,y) coordinate represents the TIP of the blade for accurate collision.
+        spriteWidth: 25 * 1.2,
+        spriteHeight: 85 * 1.2,
         x: canvas.width / 2,
         y: canvas.height - 150,
         speed: 20 
     };
+    
+    // --- NEW: ADVERTISEMENT LOGIC ---
+    function loadAds() {
+        // Clear previous ads to force a refresh
+        topAdContainer.innerHTML = '';
+        bottomAdContainer.innerHTML = '';
+
+        // --- Top Banner (300x250) ---
+        const topAdConfig = document.createElement('script');
+        topAdConfig.type = 'text/javascript';
+        topAdConfig.text = `
+            atOptions = {
+                'key' : '8ee0ea4930ab98951f62e50eadf3788e',
+                'format' : 'iframe',
+                'height' : 250,
+                'width' : 300,
+                'params' : {}
+            };
+        `;
+        const topAdInvoke = document.createElement('script');
+        topAdInvoke.type = 'text/javascript';
+        topAdInvoke.src = '//www.highperformanceformat.com/8ee0ea4930ab98951f62e50eadf3788e/invoke.js';
+        
+        topAdContainer.appendChild(topAdConfig);
+        topAdContainer.appendChild(topAdInvoke);
+
+        // --- Bottom Banner (728x90) ---
+        const bottomAdConfig = document.createElement('script');
+        bottomAdConfig.type = 'text/javascript';
+        bottomAdConfig.text = `
+            atOptions = {
+                'key' : 'e35460be4ebeb54d70231e9e3e3bf980',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        `;
+        const bottomAdInvoke = document.createElement('script');
+        bottomAdInvoke.type = 'text/javascript';
+        bottomAdInvoke.src = '//www.highperformanceformat.com/e35460be4ebeb54d70231e9e3e3bf980/invoke.js';
+
+        bottomAdContainer.appendChild(bottomAdConfig);
+        bottomAdContainer.appendChild(bottomAdInvoke);
+    }
+
 
     // --- DRAWING FUNCTIONS ---
 
@@ -62,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.translate(target.x, target.y);
         ctx.rotate(target.rotation);
 
-        // Draw Log
         ctx.fillStyle = '#8B4513';
         ctx.beginPath();
         ctx.arc(0, 0, target.radius, 0, Math.PI * 2);
@@ -74,20 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
         target.stuckKnives.forEach(k => {
             ctx.save();
             ctx.rotate(k.angle);
-            
-            // --- KEY CHANGE: Drawing stuck knives correctly ---
-            // The context is rotated so that the Y-axis points OUT from the log's center.
-            // We draw the knife image along this axis, pointing outwards.
             if (imageLoaded) {
-                // The knife's tip should be on the edge (-target.radius).
-                // We draw the image from its top-left corner, so we offset it by its full height.
-                ctx.drawImage(
-                    knifeImage, 
-                    -knife.spriteWidth / 2, // Center the sprite horizontally
-                    -target.radius - knife.spriteHeight, // Position the tip on the log's edge
-                    knife.spriteWidth, // Use larger sprite width
-                    knife.spriteHeight // Use larger sprite height
-                );
+                ctx.drawImage(knifeImage, -knife.spriteWidth / 2, -target.radius - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
             }
             ctx.restore();
         });
@@ -95,19 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.restore();
     }
     
-    // Draws the throwing knife at its current position.
     function drawThrowingKnife() {
         if (!imageLoaded) return;
-        
-        // --- KEY CHANGE: Use larger sprite dimensions for the throwing knife ---
-        // The knife's (x, y) is its tip. We draw the image above that point.
-        ctx.drawImage(
-            knifeImage, 
-            knife.x - knife.spriteWidth / 2, // Center the larger sprite on the hitbox
-            knife.y - knife.spriteHeight, // Position top of sprite so bottom (tip) is at knife.y
-            knife.spriteWidth, 
-            knife.spriteHeight
-        );
+        ctx.drawImage(knifeImage, knife.x - knife.spriteWidth / 2, knife.y - knife.spriteHeight, knife.spriteWidth, knife.spriteHeight);
     }
     
     function updateUI() {
@@ -195,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showLevelComplete() {
         gameState = 'levelComplete';
         levelCompleteScreen.style.display = 'flex';
+        loadAds(); // Refresh ads
     }
 
     function proceedToNextLevel() {
@@ -203,12 +225,14 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
+        loadAds(); // Refresh ads
     }
 
     function triggerGameOver() {
         gameState = 'gameOver';
         finalLevelElement.textContent = level;
         gameOverScreen.style.display = 'flex';
+        loadAds(); // Refresh ads
     }
     
     function retryCurrentLevel() {
@@ -216,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
+        loadAds(); // Refresh ads
     }
 
     function startFirstGame() {
@@ -224,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState = 'playing';
         setupLevel();
         update();
+        loadAds(); // Refresh ads
     }
 
     // --- MAIN GAME LOOP ---
@@ -273,4 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             throwKnife();
         }
     });
+
+    // --- INITIAL LOAD ---
+    loadAds(); // Load ads for the very first time on the start screen.
 });
