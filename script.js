@@ -68,17 +68,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- LOGICA DI GIOCO (ROBUSTA) ---
+    // --- LOGICA DI GIOCO ---
     function setupLevel() {
         target.stuckKnives = [];
         target.rotation = 0;
-        throwing = false; // <<< Reset cruciale
+        throwing = false;
         knife.y = canvas.height - 150;
 
-        const speedLevel = Math.min(level, 10);
-        const baseSpeed = 0.015 + speedLevel * 0.005;
+        // --- KEY CHANGE: La difficoltà si ferma al livello 10 ---
+        const difficultyLevel = Math.min(level, 10);
+
+        const baseSpeed = 0.015 + difficultyLevel * 0.005;
         target.baseRotationSpeed = (Math.random() > 0.5 ? 1 : -1) * Math.max(baseSpeed, 0.04);
         
+        // La velocità irregolare inizia comunque dopo il livello 10, ma senza aumentare la velocità di base
         if (level > 10) {
             target.wobbleAngle = 0;
             target.wobbleSpeed = 0.01 + (level - 10) * 0.002;
@@ -88,14 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
             target.wobbleAmplitude = 0;
         }
 
-        knivesLeft = Math.min(5 + Math.floor(level / 2), 9);
+        // Anche il numero di coltelli si ferma al valore del livello 10
+        knivesLeft = Math.min(5 + Math.floor(difficultyLevel / 2), 9);
+        
         scoreElement.textContent = `Level: ${level}`;
         updateKnifeCounter();
     }
     
     // --- GESTIONE STATI DI GIOCO ---
     function endThrow(success, hitAngle = 0) {
-        throwing = false; // <<< Funzione centralizzata per resettare lo stato
+        throwing = false;
 
         if (success) {
             target.stuckKnives.push({ angle: hitAngle });
@@ -134,9 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- GAME LOOP ---
     function gameLoop() {
-        // Logica di aggiornamento solo se il gioco è attivo
         if (gameState === 'playing') {
-            // Aggiorna velocità
             if (level > 10) {
                 target.wobbleAngle += target.wobbleSpeed;
                 const wobbleEffect = Math.sin(target.wobbleAngle) * target.wobbleAmplitude;
@@ -144,16 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             target.rotation += target.rotationSpeed;
             
-            // Logica del lancio
             if (throwing) {
                 knife.y -= knife.speed;
                 
-                // Mancato (fuori schermo)
                 if (knife.y < -knife.height) {
-                    endThrow(false); // Sconfitta
+                    endThrow(false);
                 }
 
-                // Collisione con ceppo
                 const knifeTipY = knife.y - knife.height;
                 const distance = Math.hypot(knife.x - target.x, knifeTipY - target.y);
 
@@ -168,24 +168,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             break;
                         }
                     }
-                    endThrow(collision ? false : true, hitAngle); // Chiama la funzione di fine lancio
+                    endThrow(collision ? false : true, hitAngle);
                 }
             }
         }
         
-        // Il disegno avviene sempre, indipendentemente dallo stato
         draw();
-        
         requestAnimationFrame(gameLoop);
     }
 
     function updateKnifeCounter() {
         knifeCounterElement.innerHTML = '';
-        const totalKnives = Math.min(5 + Math.floor(level / 2), 9);
+        const difficultyLevel = Math.min(level, 10);
+        const totalKnives = Math.min(5 + Math.floor(difficultyLevel / 2), 9);
         for (let i = 0; i < totalKnives; i++) {
             const knifeIcon = document.createElement('span');
             knifeIcon.textContent = '🗡️';
-            // Mostra come usati i coltelli già lanciati
             if (i >= knivesLeft) {
                 knifeIcon.style.opacity = '0.3';
             }
